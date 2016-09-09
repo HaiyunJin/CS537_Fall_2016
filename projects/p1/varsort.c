@@ -23,21 +23,18 @@ void usage(char *prog){
 }
 
 int CompareDataptr(rec_dataptr_t *r1,rec_dataptr_t *r2) {
-    return (*r1).key - (*r2).key;
+    return (int) ( (*r1).key - (*r2).key ) ;
 }
 
-
-
 int main(int argc, char *argv[] ) {
-
-    printf("Start\n");
+//    printf("Start\n");
     // arguments
     char *inFile  =  "/no/such/file";
     char *outFile =  "/no/such/file";
     int c;
-    printf("after args\n");
+//    printf("after args\n");
 
-    opterr = 0 ;
+//    opterr = 0 ;
 
      while ((c = getopt(argc, argv, "i:o:")) != -1) {
        switch (c) {
@@ -52,7 +49,7 @@ int main(int argc, char *argv[] ) {
        }
      }
 
-     printf("Received args\n") ;
+//     printf("Received args\n") ;
 
     // open input file
     int fin = open(inFile, O_RDONLY);
@@ -78,7 +75,7 @@ int main(int argc, char *argv[] ) {
         exit(1);
     }
 
-    printf("Number of records: %d\n", recordsLeft);
+//    printf("Number of records: %d\n", recordsLeft);
     // output the number of keys as a header for this file
     rout = write(fout, &recordsLeft, sizeof(recordsLeft));
     if (rout != sizeof(recordsLeft)) {
@@ -87,19 +84,29 @@ int main(int argc, char *argv[] ) {
     // should probably remove file here but ...
     }
 
-printf("After reading first line\n");
+//printf("After reading first line\n");
 
     int numRecords = recordsLeft;
       rec_dataptr_t fullRecords[recordsLeft];
-printf("After define fullrecords\n");
+//printf("After define fullrecords\n");
       rec_nodata_t tempRecord;
-printf("After define temprecords\n");
+//printf("After define temprecords\n");
 //      unsigned int data[recordsLeft][MAX_DATA_INTS];
-      unsigned int data[recordsLeft][15];
+//      unsigned int data[recordsLeft][15];
+//      unsigned int *data
+//      data = (unsigned int *) malloc(recordsLeft*MAX_DATA_INTS*sizeof(unsigned int)) ;
 
-printf("Before entering read loop\n");
+      unsigned int **data = malloc( sizeof(*data) * recordsLeft) ;
+      int i;
+//      if ( data ) {
+//        for ( i = 0 ; i < recordsLeft; ++i) {
+//            data[i] = malloc(sizeof(*data[i])*MAX_DATA_INTS) ;
+//        }
+//      }
 
-      int count;
+//printf("Before entering read loop\n");
+
+      int count = 0 ;
       // read all data into array?
       while (recordsLeft) {
         // read fix part
@@ -112,6 +119,7 @@ printf("Before entering read loop\n");
           //          assert(fixedHead.data_ints <= MAX_DATA_INTS);
           fullRecords[count].key = tempRecord.key;
           fullRecords[count].data_ints  = tempRecord.data_ints;
+          data[count] = malloc(sizeof(*data[count])*fullRecords[count].data_ints) ;
 //////////////////////////////////////////////
 // For the above, can try
 //        rin = read(fin, &fullRecords[count], sizeof(rec_nodata_t));
@@ -124,7 +132,8 @@ printf("Before entering read loop\n");
 
           // read data
           data_size = fullRecords[count].data_ints * sizeof(unsigned int);
-          rin = read(fin, &data[count][0],data_size);
+          //rin = read(fin, &data[count][0],data_size);
+          rin = read(fin, data[count],data_size);
           if (rin != data_size) {
               perror("read");
               exit(1);
@@ -166,7 +175,7 @@ printf("Before entering read loop\n");
 //    }
 
 
-printf("After sort array\n");
+//printf("After sort array\n");
 
       // output data according to key
       recordsLeft = numRecords;
@@ -189,8 +198,10 @@ printf("After sort array\n");
               --recordsLeft;
               ++count;
       }
-printf("After write data\n");
+//printf("After write data\n");
 
+
+      free(data);
       (void) close(fin);
       (void) close(fout);
 }
