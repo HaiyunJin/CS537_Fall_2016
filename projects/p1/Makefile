@@ -21,3 +21,6 @@ $(EXECUTABLE): $(OBJECTS)
 
 clean:
 	rm  -f $(EXECUTABLE) $(OBJECTS)
+
+varone : 
+	$(CC)  varsort_onemalloc.c -o varsort_onemalloc

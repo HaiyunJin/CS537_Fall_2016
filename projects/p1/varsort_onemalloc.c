@@ -18,7 +18,8 @@
 
 
 void usage(char *prog) {
-  fprintf(stderr, "Usage: varsort -i inputfile -o outputfile\n");
+// fprintf(stderr, "usage: %s <-i inFile> <-o outFile>\n", prog);
+  fprintf(stderr, "usage: varsort <-i inFile> <-o outFile>\n");
   exit(1);
 }
 
@@ -46,26 +47,27 @@ int main(int argc, char *argv[] ) {
   // printf("c value: %d\n", c);
 
 
-    int validflag = 0;
      if ( argc == 5 ) {
-        while ((c = getopt(argc, argv, "i:o:")) != -1) {
-            validflag = 1;
-          switch (c) {
-          case 'i':
-            inFile   = strdup(optarg);
-            break;
-          case 'o':
-            outFile = strdup(optarg);
-            break;
-          default:
-            usage(argv[0]);
-          }
-        }
-     } else {
+    while ((c = getopt(argc, argv, "i:o:")) != -1) {
+        printf(" I came here. \n");
+      switch (c) {
+      case 'i':
+        inFile   = strdup(optarg);
+        printf("Infile: %s\n", inFile);
+        break;
+      case 'o':
+        outFile = strdup(optarg);
+        printf("outfile: %s\n", outFile);
+        break;
+      default:
+        printf("Here comes the default\n");
+        usage(argv[0]);
+      }
+    }
+     } else if ( argc == 1 ) {
+         fprintf(stderr, "No argument\n");
          usage(argv[0]);
-     }
-
-     if ( validflag == 0 ) {
+     } else {
          usage(argv[0]);
      }
 
@@ -75,88 +77,91 @@ int main(int argc, char *argv[] ) {
     // open input file
     int fin = open(inFile, O_RDONLY);
     if (fin < 0) {
-        // perror("open infile");
-        fprintf(stderr, "Error: Cannot open file %s\n", inFile);
+        perror("open");
         exit(1);
     }
     // open and create output file
     int fout = open(outFile, O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU);
     if (fout < 0) {
-        // perror("open");
-        fprintf(stderr, "Error: Cannot open file %s\n", outFile);
+        perror("open");
         exit(1);
     }
 
-    // output the number of keys as a header for this file
-    int recordsLeft;
+    int numRecords;
     int rin;
     int rout;
+    int intSize = sizeof(int);
 
-    rin = read(fin, &recordsLeft, sizeof(recordsLeft));
-    if (rin != sizeof(recordsLeft)) {
+
+    // get the total size of infile
+    struct stat fileStat;
+    if ( stat(inFile, &fileStat) < 0 ) {
         perror("read");
         exit(1);
     }
+    //  fileStat.st_size
 
-    // output the number of keys as a header for this file
-    rout = write(fout, &recordsLeft, sizeof(recordsLeft));
-    if (rout != sizeof(recordsLeft)) {
-        perror("write");
+    printf("file size: %d\n", (int)fileStat.st_size);
+    // exit(1);
+    int fileSize = (int) fileStat.st_size;
+
+    // read out the header
+    rin = read(fin, &numRecords, sizeof(numRecords));
+    if (rin != sizeof(numRecords)) {
+        perror("read");
         exit(1);
-    // should probably remove file here but ...
     }
+    // mem       file       header        keys and num
+    int dataSize = fileSize - intSize - 2*numRecords*intSize;
+    printf("data size: %d\n", dataSize/4 );
+
+
+
 
 // printf("After reading first line\n");
 
-    int numRecords = recordsLeft;
-// /      rec_dataptr_t fullRecords[recordsLeft];
-      rec_dataptr_t *fullRecords = malloc( sizeof(rec_dataptr_t)*recordsLeft);
+// /      rec_dataptr_t fullRecords[numRecords];
+      rec_dataptr_t *fullRecords = malloc( sizeof(rec_dataptr_t)*numRecords);
 
 // printf("After define fullrecords\n");
       rec_nodata_t tempRecord;
 // printf("After define temprecords\n");
 
-      unsigned int **data = malloc( sizeof(*data) * recordsLeft);
+// /      unsigned int **data = malloc( sizeof(*data) * numRecords);
 // /      int i;
 
 // printf("Before entering read loop\n");
 
+      int *data = malloc(dataSize*sizeof(int));
+
+
+        
+      int recordsLeft = numRecords;
       int count = 0;
+      int data_size;
+      int pos = 0;
       // read all data into array?
       while (recordsLeft) {
         // read fix part
-          int data_size = sizeof(rec_nodata_t);
-          rin = read(fin, &tempRecord, data_size);
-          if (rin != data_size) {
+          data_size = sizeof(rec_nodata_t);
+          rin = read(fin, &fullRecords[count], sizeof(rec_nodata_t));
+          if (rin != sizeof(rec_nodata_t)) {
               perror("read");
               exit(1);
           }
-          fullRecords[count].key = tempRecord.key;
-          fullRecords[count].data_ints  = tempRecord.data_ints;
-          data[count] =
-              malloc(sizeof(*data[count])*fullRecords[count].data_ints);
-//////////////////////////////////////////////
-// For the above, can try
-// 1       rin = read(fin, &fullRecords[count], sizeof(rec_nodata_t));
-// 1       if (rin != sizeof(rec_nodata_t)) {
-// 1           perror("read");
-// 1           exit(1);
-// 1       }
-// End try
-//////////////////////////////////////////////
 
           // read data
           data_size = fullRecords[count].data_ints * sizeof(unsigned int);
-          // rin = read(fin, &data[count][0],data_size);
-          rin = read(fin, data[count], data_size);
+          fullRecords[count].data_ptr = data + pos ;
+          rin = read(fin, fullRecords[count].data_ptr, data_size);
           if (rin != data_size) {
               perror("read");
               exit(1);
           }
-          fullRecords[count].data_ptr = &data[count][0];
 
           --recordsLeft;
           ++count;
+          pos = pos + data_size;
       }
 
 // printf("After entering read loop\n");
@@ -194,6 +199,13 @@ int main(int argc, char *argv[] ) {
 
 // printf("After sort array\n");
 
+      // output the number of keys as a header for this file
+      rout = write(fout, &numRecords, sizeof(numRecords));
+      if (rout != sizeof(numRecords)) {
+          perror("write");
+          exit(1);
+          // should probably remove file here but ...
+      }
       // output data according to key
       recordsLeft = numRecords;
       count = 0;
@@ -218,13 +230,6 @@ int main(int argc, char *argv[] ) {
 // printf("After write data\n");
 
       // free memory
-      recordsLeft = numRecords;
-      count = 0;
-      while (recordsLeft) {
-          free(data[count]);
-          --recordsLeft;
-          ++count;
-      }
       free(data);
       (void) close(fin);
       (void) close(fout);
