@@ -16,9 +16,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-  // int intSize = sizeof(int);
-  // int rec_nodata_t_size = sizeof(rec_nodata_t);
-  // int rec_dataptr_t_size = sizeof(rec_dataptr_t);
+  int intSize = sizeof(int);
+  int rec_nodata_t_size = sizeof(rec_nodata_t);
+  int rec_dataptr_t_size = sizeof(rec_dataptr_t);
 
 void usage(char *prog) {
   fprintf(stderr, "Usage: varsort -i inputfile -o outputfile\n");
@@ -26,38 +26,38 @@ void usage(char *prog) {
 }
 
 int CompareDataptr(const void *r1, const void *r2) {
-    const rec_dataptr_t *r1l = (const rec_dataptr_t *) r1;
-    const rec_dataptr_t *r2l = (const rec_dataptr_t *) r2;
-    return ((int) r1l->key) - ((int) r2l->key);
+//  const rec_dataptr_t *r1l = (const rec_dataptr_t *) r1;
+//  const rec_dataptr_t *r2l = (const rec_dataptr_t *) r2;
+//  return ((int) r1l->key) - ((int) r2l->key);
+    return ((const rec_dataptr_t *) r1)->key - \
+        ((const rec_dataptr_t *) r2)->key;
+
 }
 
 int main(int argc, char *argv[] ) {
     // arguments
-    char *inFile, *outFile;
+    char *inFile = "";
+    char *outFile = "";
     int c;
 
     int validflag = 0;
-     if ( argc == 5 ) {
-        while ((c = getopt(argc, argv, "i:o:")) != -1) {
-            validflag = 1;
-            switch (c) {
-                case 'i':
-                    inFile   = strdup(optarg);
-                    break;
-                case 'o':
-                    outFile = strdup(optarg);
-                    break;
-                default:
-                    usage(argv[0]);
-            }
+    if ( argc != 5 ) usage(argv[0]);
+    while ((c = getopt(argc, argv, "i:o:")) != -1) {
+        validflag = 1;
+        switch (c) {
+            case 'i':
+                inFile  = strdup(optarg);
+                break;
+            case 'o':
+                outFile = strdup(optarg);
+                break;
+            default:
+                usage(argv[0]);
         }
-     } else {
-         usage(argv[0]);
-     }
-
-     if ( validflag == 0 ) {
-         usage(argv[0]);
-     }
+    }
+    if ( validflag == 0 ) {
+        usage(argv[0]);
+    }
 
     // open input file
     int fin = open(inFile, O_RDONLY);
@@ -74,9 +74,14 @@ int main(int argc, char *argv[] ) {
 
     int numRecords;
     int rin, rout;
-    int intSize = sizeof(int);
-    int rec_nodata_t_size = sizeof(rec_nodata_t);
-    int rec_dataptr_t_size = sizeof(rec_dataptr_t);
+    // int unsignintSize = sizeof(unsigned int);
+    // int intSize = sizeof(int);
+    // int rec_nodata_t_size = sizeof(rec_nodata_t);
+    // int rec_dataptr_t_size = sizeof(rec_dataptr_t);
+
+
+    // printf("intsize: %d\n", intSize);
+    // printf("unsignintsize: %d\n", intSize);
 
     // get the total size of infile
     struct stat fileStat;
@@ -96,11 +101,11 @@ int main(int argc, char *argv[] ) {
     // data        file       header        keys and num
     int dataSize = fileSize - intSize - 2*numRecords*intSize;
     rec_dataptr_t *fullRecords = malloc(numRecords * rec_dataptr_t_size);
-    int *data = malloc(dataSize * intSize);
+    unsigned int *data = malloc(dataSize * intSize);
     int data_size = 0;
     int recordsLeft = numRecords;
     int count = 0;
-    int pos = 0;
+    unsigned int pos = 0;
 
     while (recordsLeft) {
       // read fix part key and num
@@ -113,6 +118,7 @@ int main(int argc, char *argv[] ) {
         // read data
         data_size = fullRecords[count].data_ints * intSize;
         fullRecords[count].data_ptr = data + pos;
+        // fullRecords[count].data_ptr = &data[pos];
         rin = read(fin, fullRecords[count].data_ptr, data_size);
         if (rin != data_size) {
             perror("read");
@@ -124,7 +130,6 @@ int main(int argc, char *argv[] ) {
         // pos = pos + data_size;
         pos = pos + data_size/intSize;
     }
-
 
       // sort the key
       // qsort(fullRecords, numRecords, sizeof(rec_dataptr_t), CompareDataptr);
