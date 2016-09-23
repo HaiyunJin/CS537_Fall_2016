@@ -88,3 +88,10 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// return how many syscalls has been called since haiyun
+int
+sys_getnumsyscallp(void)
+{
+  return proc->numsyscalls;
+}

@@ -43,6 +43,7 @@ allocproc(void)
   return 0;
 
 found:
+  p->numsyscalls = 0 ; // initialize haiyun
   p->state = EMBRYO;
   p->pid = nextpid++;
   release(&ptable.lock);

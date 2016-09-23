@@ -103,6 +103,7 @@ static int (*syscalls[])(void) = {
 [SYS_wait]    sys_wait,
 [SYS_write]   sys_write,
 [SYS_uptime]  sys_uptime,
+[SYS_getnumsyscallp]  sys_getnumsyscallp, // haiyun
 };
 
 // Called on a syscall trap. Checks that the syscall number (passed via eax)
@@ -114,6 +115,12 @@ syscall(void)
   
   num = proc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num] != NULL) {
+    // should increase numsyscalls here   haiyun
+    // check the callnum to exclude itself SYS_getnumsyscallp
+    if ( num != SYS_getnumsyscallp ) { 
+        // SYS_getnumsyscallp is the number of getnumsyscallp
+        proc->numsyscalls++;
+    }
     proc->tf->eax = syscalls[num]();
   } else {
     cprintf("%d %s: unknown sys call %d\n",
