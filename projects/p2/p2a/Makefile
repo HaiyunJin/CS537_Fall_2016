@@ -10,10 +10,14 @@
 #####################################################################
 
 CC=gcc
-CFLAGS=-Wall -g
+#CFLAGS=-Wall -g
+CFLAGS=-g
 
 mysh: mysh.c
 	$(CC) -o mysh $(CFLAGS) mysh.c
+
+execvptest: execvptest.c
+	$(CC) -o execvptest $(CFLAGS) execvptest.c
 
 clean:
 	$(RM) mysh 
