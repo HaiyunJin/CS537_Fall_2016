@@ -60,12 +60,12 @@ void execute(char **argv) {
     pid = fork();
     if ( pid < 0 ) {
         printf("Fork error.\n");
-    } else if (pid == 0 ) {
+    } else if ( pid == 0 ) {
         if ( execvp(argv[0],argv) < 0 ) {
             printf("Invalid exec.\n");
         }
-        printf("Child process complete.\n");
-        exit(1);
+//        printf("Child process complete.\n");
+//        exit(1);
     } else {
         waitpid(-1,pid,0);
     }
@@ -87,30 +87,30 @@ void interact() {
         if ( NULL == fgets(commands,LINESIZE,stdin) ) {
             return;
         }
-        printf("\n"); 
-    printf("after read stdin\n");
+//        printf("\n"); 
+//        printf("after read stdin\n");
+//        printf("Command: %s\n",*argv);
         parse(commands,argv);
-    printf("after parse\n");
-    printf("Command: %s\n",*argv);
-     printf("argv[0] \"%s\"\n", argv[0] ) ;
-     printf("argv[1] \"%s\"\n", argv[1] ) ;
-     printf("argv[2] \"%s\"\n", argv[2] ) ;
-     printf("argv[3] \"%s\"\n", argv[3] ) ;
-     printf("argv[4] \"%s\"\n", argv[4] ) ;
-     printf("argv[5] \"%s\"\n", argv[5] ) ;
-     printf("argv[6] \"%s\"\n", argv[6] ) ;
-     printf("strcmp %d\n", strcmp( argv[0],"exit") ) ;
-    if ( strcmp( argv[0],"exit") == 0 )  {
-//    if (argv[0][0] == 'e' && argv[0][1] == 'x' && 
-//        argv[0][2] == 'i' && argv[0][3] == 't' && argv[0][4] == '\0')  {
-        printf("exit typed\n");
-        exit(1);
+//        printf("after parse\n");
+//        printf("Command: %s\n",*argv);
+//        printf("argv[0] \"%s\"\n", argv[0] ) ;
+//        printf("argv[1] \"%s\"\n", argv[1] ) ;
+//        printf("argv[2] \"%s\"\n", argv[2] ) ;
+//        printf("argv[3] \"%s\"\n", argv[3] ) ;
+//        printf("argv[4] \"%s\"\n", argv[4] ) ;
+//        printf("argv[5] \"%s\"\n", argv[5] ) ;
+//        printf("argv[6] \"%s\"\n", argv[6] ) ;
+//        printf("strcmp %d\n", strcmp( argv[0],"exit") ) ;
+        if ( argv[0] ) {
+            if ( strcmp( argv[0],"exit") == 0 )  {
+//                printf("exit typed\n");
+                exit(1);
+            }
+//            printf("in execute\n");
+            execute(argv);
+        }
+//        printf("after execute\n");
     }
-        execute(argv);
-//    printf("after execute\n");
-//       exit(1);
-    }
-
 }
 
 void batchmode(char *argv[]) {
