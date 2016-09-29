@@ -15,20 +15,25 @@ node_t *createNode(int jid, int pid, int argc, char **argv) {
     newnode->argv = argv;
     newnode->next=NULL;
 
-        int i;
-        printf("%d: ", jid);
-        for ( i = 0 ; i < argc ; ++i )
-            printf(" %s", argv[i]);
-        printf("\n");
+//        int i;
+//        printf("%d: ", jid);
+//        for ( i = 0 ; i < argc ; ++i )
+//            printf(" %s", argv[i]);
+//        printf("\n");
 
     return newnode;
 }
 
 /* Free list*/
 void freeList(node_t *head) {
+    int argc, i;
     node_t *curr = head;
     while (curr != NULL ) {
         head = curr->next;
+        argc =  curr->next->argc;
+        for ( i = 0 ; i < argc ; ++i )
+            free(curr->next->argv[i]);
+        free(curr->argv); // free the argv
         free(curr);
         curr = head;
     }
@@ -40,7 +45,7 @@ void printList(node_t *head) {
     int i;
     while ( curr != NULL ) {
         printf("%d:", curr->jid);
-        printf(" %s", *(curr->argv));
+//        printf(" %s", *(curr->argv));
         for ( i = 0 ; i < curr->argc ; ++i )
             printf(" %s", (curr->argv)[i]);
         printf("\n");
@@ -60,12 +65,28 @@ void push(node_t *head, node_t *newnode) {
 
 /* Clean the list by remove stopped jobs*/
 void removeStoppedJobs(node_t *head) {
+    int argc, i;
     node_t *curr = head;
+    node_t *nextNext;
+//int jout=0;
+//int jiner=0;
+//printList(head);
     while ( curr != NULL ) {
-        while ( waitpid(curr->next->pid,NULL,WNOHANG) != 0 ) {
-                            // existing job return 0
-            curr->next = curr->next->next;
+//printList(head);
+//printf("    I reached outer %d\n",jout++);
+        while (  curr->next != NULL && waitpid(curr->next->pid,NULL,WNOHANG) != 0  ) {
+//printList(head);
+//printf(" Inner most loop %d\n",jiner++);
+                            // exited job return 0
+            nextNext = curr->next->next;
+
+            argc =  curr->next->argc;
+            for ( i = 0 ; i < argc ; ++i )
+                free(curr->next->argv[i]);
+            free(curr->next->argv); // free the argv of deleted node
             free(curr->next); // free the delete node
+            //curr->next = NULL;
+            curr->next = nextNext;
         }
         curr = curr->next;
     }

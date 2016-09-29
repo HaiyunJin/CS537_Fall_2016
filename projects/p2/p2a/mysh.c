@@ -15,7 +15,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #define LINESIZE 512
-#define ARGC 64
+#define ARGC 256
 #include "parse.c"
 #include "linkedlist.c"
 
@@ -76,17 +76,23 @@ void execute(int argc, char **argv, int *background) {
 
         /* keep track of the jid */
         node_t *jobNode;
-        jobNode = createNode(++jid, pid, argc, argv);
-
+// problem here:
+// all nodes points to the same argv memory address
+// So need to make a copy of the argv
+        char **argvNew = malloc(sizeof(char *)*argc);
         int i;
-        printf("%d: ", jid);
         for ( i = 0 ; i < argc ; ++i )
-            printf(" %s", argv[i]);
-        printf("\n");
-        printf("%d: ", jid);
-        for ( i = 0 ; i < jobNode->argc ; ++i )
-            printf(" %s", (jobNode->argv)[i]);
-        printf("\n");
+            argvNew[i] = strdup(argv[i]); // remember to free
+        
+        jobNode = createNode(++jid, pid, argc, argvNew);
+//        printf("%d: ", jid);
+//        for ( i = 0 ; i < argc ; ++i )
+//            printf(" %s", argv[i]);
+//        printf("\n");
+//        printf("%d: ", jid);
+//        for ( i = 0 ; i < jobNode->argc ; ++i )
+//            printf(" %s", (jobNode->argv)[i]);
+//        printf("\n");
 
         push(joblist, jobNode);
 
@@ -147,8 +153,8 @@ void interact() {
 //    printf("argv[2] \"%s\"\n", argv[2] ) ;
 //    printf("argv[3] \"%s\"\n", argv[3] ) ;
         if ( strcmp( argv[0],"j") == 0 ) {
-            printf("j typed\n");
-            //removeStoppedJobs(joblist);
+//            printf("j typed\n");
+            removeStoppedJobs(joblist);
             printList(joblist);
         } else if ( strcmp( argv[0],"myw") == 0 ) {
         
