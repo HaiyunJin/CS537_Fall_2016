@@ -1,6 +1,9 @@
 
-* direct enter check
-* add run at background option
+        * direct enter check
+        * add run at background option
+* jid function
+        strtok
+strtol  str to long, will check if legal
 
 
 
