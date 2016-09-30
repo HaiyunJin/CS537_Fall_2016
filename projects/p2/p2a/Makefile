@@ -10,10 +10,10 @@
 #####################################################################
 
 CC=gcc
-#CFLAGS=-Wall -g
-CFLAGS=-g
+CFLAGS=-Wall -g
+#CFLAGS=-g
 
-mysh: mysh.c parse.c linkedlist.c
+mysh: mysh.c linkedlist.c
 	$(CC) -o mysh $(CFLAGS) mysh.c
 
 execvptest: execvptest.c

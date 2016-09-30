@@ -5,5 +5,8 @@
         strtok
 strtol  str to long, will check if legal
 
+* use write, not printf
+* implement batch mode
+
 
 

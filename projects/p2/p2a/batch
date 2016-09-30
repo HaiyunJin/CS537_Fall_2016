@@ -1,0 +1,13 @@
+ls
+pwd
+ps
+exit 1
+ps
+sleep 1 &
+ls
+sleep 3 &
+j
+myw 8
+exit 2
+ls
+exit
