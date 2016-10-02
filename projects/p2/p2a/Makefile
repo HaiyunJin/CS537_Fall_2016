@@ -13,7 +13,7 @@ CC=gcc
 CFLAGS=-Wall -g
 #CFLAGS=-g
 
-mysh: mysh.c linkedlist.c
+mysh: mysh.c 
 	$(CC) -o mysh $(CFLAGS) mysh.c
 
 execvptest: execvptest.c

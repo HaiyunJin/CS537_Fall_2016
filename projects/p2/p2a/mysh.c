@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#define LINESIZE 512
+#define LSIZE 512 // Max linesize
 #define ARGC 256
 
 typedef struct node {
@@ -17,9 +17,12 @@ typedef struct node {
 
 /* Job list, globally accessible */
 node_t *joblist = NULL;
+char str[LSIZE];
 
 void usage() {
-    fprintf(stderr,"Usage: mysh [batchFile]\n");
+    // fprintf(stderr,"Usage: mysh [batchFile]\n");
+    sprintf(str, "Usage: mysh [batchFile]\n");
+    write(STDERR_FILENO, str, strlen(str));
     exit(1);
 }
 
@@ -31,7 +34,7 @@ node_t *createNode(int jid, int pid, int argc, char **argv) {
     newnode->pid = pid;
     newnode->argc = argc;
     newnode->argv = argv;
-    newnode->next=NULL;
+    newnode->next = NULL;
     return newnode;
 }
 
@@ -71,9 +74,14 @@ void printList(node_t *head) {
     node_t *curr = head->next;
     int i;
     while ( curr != NULL ) {
-        printf("%d:", curr->jid);
-        for ( i = 0; i < curr->argc; ++i ) printf(" %s", (curr->argv)[i]);
-        printf("\n");
+        sprintf(str,"%d:", curr->jid);
+        write(STDOUT_FILENO, str, strlen(str));
+        for ( i = 0; i < curr->argc; ++i ) {
+            sprintf(str, " %s", (curr->argv)[i]);
+            write(STDOUT_FILENO, str, strlen(str));
+        }
+        // printf("\n");
+        write(STDOUT_FILENO, "\n", 1);
         curr = curr->next;
     }
 }
@@ -85,27 +93,38 @@ void push(node_t *head, node_t *newnode) {
     curr->next = newnode;
 }
 
-void parse(char *commands, int *argc, char **argv, int *background) {
+int parse(char *commands, int *argc, char **argv, int *background) {
+
     const char *delim = " \t\n";
     char *token;
     int i = 0;
     token = strtok(commands,delim);  /* get the first token */
     do argv[i++] = token;  /* walk through other tokens */
     while (( token = strtok(NULL,delim)) != NULL );
+
+    /* if first token is null, return */
+    if ( argv[0] == NULL ) return -1;
+    //if ( (*argv[0] == '&') && i == 1  )  return -1;
+
     argv[i] = NULL; /* argvs ended with NULL */
     /* if the last arg is &, run background, & in the middle is ok */
     if ( ( *background = (*argv[i-1] == '&') ) == 1 )
         argv[--i] = NULL; // remove the last & arg and decrease the argc
     *argc = i ; // pass the argc 
+    return *argc;
 }
 
 void execute(int argc, char **argv, int *background) {
     static int jid = 0;
     pid_t pid = fork();
-    if ( pid < 0 ) printf("Fork error.\n");
+    if ( pid < 0 ) {
+        sprintf(str, "ERROR: Fork error.\n");
+        write(STDERR_FILENO, str, strlen(str));
+    }
     else if ( pid == 0 ) { // child process
         execvp(argv[0],argv);
-        printf("%s: Command not found\n",argv[0]);
+        sprintf(str, "%s: Command not found\n",argv[0]);
+        write(STDERR_FILENO, str, strlen(str));
         exit(1);
     } else {
         /* First, keep track of the jid */
@@ -117,7 +136,10 @@ void execute(int argc, char **argv, int *background) {
         joblist->jid++;  // jid in joblist is the current max jid
         push(joblist, jobNode);
         /* Then, determine background or foreground */
-        if (*background) printf("[%d] %d\n", 1, pid);
+        if ( *background == 1 ) {
+            // sprintf(str, "[%d] %d\n", 1, pid);
+            // write(STDOUT_FILENO, str, strlen(str));
+        }
         else waitpid(pid, NULL, 0);
     }
 }
@@ -136,7 +158,8 @@ int jid2pid(int jid) {
 
 void readcommands(FILE *fileno) {
     /* loop to receive user input */
-    static char commands[LINESIZE];
+    //static char commands[LSIZE];
+    char commands[LSIZE+1]; // +1 for \0
     char *argv[ARGC], *endstr;
     int background ; // background flag
     int argc, i, jid, pid;
@@ -147,22 +170,39 @@ void readcommands(FILE *fileno) {
         /* initialize all */
         for ( i = 0; i < ARGC; ++i ) argv[i] = NULL ;
         background = 0;
-        if ( fileno == stdin ) printf("mysh> "); // print promot
-        fgetstatus = fgets(commands, LINESIZE, fileno);
-        if ( fileno != stdin ) printf("%s",commands); // Print the cmd
-        if ( NULL == fgetstatus ) return;
+        /* print promot */
+        if ( fileno == stdin ) write(STDOUT_FILENO, "mysh> ", 6); 
+        if ( (fgetstatus = fgets(commands, LSIZE+1, fileno)) == NULL ) return;
+// printf("Commands strlen: %d\n", (int)strlen(commands));
+// printf("\\n at %ld\n", (unsigned long int) strchr(commands, '\n'));
+        //if (strlen(commands) >= LSIZE && strchr(commands, '\n') == NULL ) {
+        if ( strchr(commands, '\n') == NULL ) { // if the line is not fin
+            //while (strlen(fgets(commands, LSIZE+1, fileno)) >= LSIZE);
+            do fgets(commands, LSIZE+1, fileno);
+            while ( strchr(commands, '\n') == NULL) ;
+//printf(" reading the rest\n");
+            sprintf(str, "Command is too long! (Max: %d)\n", LSIZE);
+            write(STDERR_FILENO, str, strlen(str));
+            continue;
+        }
+// printf("Finish read all rest\n");
+
+        if ( fileno != stdin ) {
+            sprintf(str, "%s",commands); // Print the cmd
+            write(STDOUT_FILENO, str, strlen(str));
+        }
         if ( *commands == '\n' ) continue; /* If blank, ask for another */
-        parse(commands,&argc,argv,&background);
-        if ( strcmp(argv[0],"j")==0 && argv[1]==NULL ) printList(joblist);
-        else if ( strcmp( argv[0],"myw") == 0 && argv[2] == NULL ) {
-            jid = (int) strtol(argv[1], &endstr,10);
+        if ( parse(commands, &argc, argv, &background) <= 0 ) continue;
+        if ( strcmp(argv[0], "j") == 0 && argv[1] == NULL ) printList(joblist);
+        else if ( strcmp( argv[0], "myw") == 0 && argv[2] == NULL ) {
+            jid = (int) strtol(argv[1], &endstr, 10);
             pid = jid2pid(jid);
             if ( strcmp(endstr,"") != 0 || pid == -1 ) {
-                printf("Invalid jid %s\n",argv[1]);
-                //write(STDERR_FILENO,,);
+                sprintf(str, "Invalid jid %s\n", argv[1]);
+                write(STDERR_FILENO, str, strlen(str));
                 continue;
             } else if ( pid == -2 )
-                timewait = 0; /*Finished Jobs */
+                timewait = 0; /* Finished Jobs */
             else {
                 gettimeofday(&start, NULL);
                 waitpid(pid, NULL, 0); /* Wait for jid */
@@ -170,11 +210,9 @@ void readcommands(FILE *fileno) {
                 timewait =  ((end.tv_sec * 1000000 + end.tv_usec)
                         - (start.tv_sec * 1000000 + start.tv_usec));
             }
-            printf("%ld : Job %d terminated\n", timewait, jid);
-            write(STDOUT_FILENO, (char *)&timewait, sizeof(timewait));
-            write(STDOUT_FILENO, " : Job ", sizeof(" : Job ")-1);
-            write(STDOUT_FILENO, (char *)&jid, sizeof(jid));
-            write(STDOUT_FILENO," terminated\n",sizeof(" terminated\n")-1);
+            //printf("%ld : Job %d terminated\n", timewait, jid);
+            sprintf(str, "%ld : Job %d terminated\n", timewait, jid);
+            write(STDOUT_FILENO, str, strlen(str));
         } else if ( strcmp(argv[0], "exit") == 0 && argv[1] == NULL )
             exit(1);
         else  execute(argc,argv,&background);
@@ -182,15 +220,13 @@ void readcommands(FILE *fileno) {
 }
 
 int main (int argc, char *argv[]) {
+    if ( argc > 2 ) usage();
     FILE *fileno = stdin;
     joblist = createNode(0,0,0,NULL);
-    if ( argc > 2 ) usage();
-    if ( argc == 2 ) {
-        fileno = fopen(argv[1],"r");
-        if ( fileno == NULL ) {
-            printf("Error: Cannot open file %s\n",argv[1]);
-            exit(1);
-        }
+    if ( argc == 2 && (fileno = fopen(argv[1], "r")) == NULL ) {
+        sprintf(str, "Error: Cannot open file %s\n",argv[1]);
+        write(STDERR_FILENO, str, strlen(str));
+        exit(1);
     } 
     readcommands(fileno);
     freeList(joblist);
