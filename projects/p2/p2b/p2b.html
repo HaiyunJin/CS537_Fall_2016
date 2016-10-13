@@ -1,0 +1,186 @@
+<html>
+
+<head>
+<title>Project 2b: xv6 Scheduler</title> 
+</head> 
+
+<body text=black bgcolor=white link=#00aacc vlink=#00aacc alink=orange>
+
+<center><table><tr><td width=600pt>
+
+<center>
+<font color=#00aacc>
+<h1>Project 2b: xv6 Scheduler</h1> 
+</font> 
+</center> 
+
+<b>You may work with a project partner from your discussion section for the Scheduler portion of this project.</b>
+
+<h2>Objectives</h2> 
+
+<p>There are three objectives to this assignment:</p> 
+
+<ul>
+
+<li>To understand code for performing context-switches in the xv6 kernel.
+
+<li>To implement a basic MLFQ scheduler.</li> 
+
+<li>To show how process behavior (i.e., how long a
+  process uses the CPU before performing I/O or sleeping) interacts
+  with the scheduler by creating an interesting timeline graph. </li>
+
+</ul> 
+
+<h2>Overview</h2> 
+
+<p>In this project, you'll be implementing a simplified <b>multi-level
+feedback queue (MLFQ)</b> scheduler in xv6.
+
+<p>The basic idea is simple.  Build an MLFQ scheduler with four
+  priority queues; the top queue (numbered 0) has the highest priority
+  and the bottom queue (numbered 3) has the lowest priority.  When a
+  process uses up its time-slice (counted as a number of ticks), it
+  should be downgraded to the next (lower) priority level.  The
+  time-slices for higher priorities will be shorter than lower
+  priorities.
+
+<h2>Details</h2> 
+
+<p> You have three specific tasks for this part of the project.
+
+<h3> Implement MLFQ</h3>
+ Your MLFQ scheduler must follow these very
+  precise rules:
+
+<ol>
+<li> At any given point in time, the highest-priority ready process should
+  be run.  
+<p>
+<li> The time-slice for priority 0 should be 2 timer ticks.  The
+  times-slice for priority 1 is 5 timer ticks; for priority 2, it is 10 timer
+  ticks; for priority 3, it is 20 timer ticks.    If no higher priority job arrives and the running process does
+  not relinquish the CPU, then that process will scheduled for an
+  entire time-slice before the scheduler switches to another process.
+<p>
+<li> When a process is first created, it is be placed at the
+  highest priority.  Place this process at the end of the high
+  priority queue.
+<p>
+<li> When a timer tick occurs, whichever process was currently using
+  the CPU should be considered to have used up an entire timer tick's
+  worth of CPU.  (Note that a timer tick is different than the
+  time-slice.)
+<p>
+<li> If a process wakes up after voluntarily relinquishing the CPU (by
+  performing I/O or sleeping), it should be placed at the back of its
+  queue.  It should not preempt a process at the same priority but is
+  should immediately preempt processes at lower priorities.
+<p>
+<li> Whenever a process uses up its time-slice at a given priority
+  level, it is moved to the next lower priority.  When a proces is
+  moved to a lower priority level, it should be placed at the end
+  of the corresponding queue.
+<p>
+<li> A round-robin scheduler should be used for processes at the
+  lowest priority.
+<p>
+<li> After each 1 second interval, if a runnable process has not been
+scheduled at all in that interval, its priority should be bumped up by
+one level (placed at the front of the corresponding queue) and given a
+new time-slice.  Details: The scheduler should have a global 1 second interval in which
+every runnable process is evaluated for starvation; a process should
+not be evaluated for starvation in its first 1 second interval.
+<p>
+</ol>
+
+<h3>Create getpinfo()</h3> 
+
+You'll need to create one new system call for this project: <b>int
+getpinfo(struct pstat *)</b> .
+
+<p>
+This routine
+returns some basic information about each process: its process ID, how
+many timer ticks it has acquired, which queue it is currently placed on (0,
+1, 2, or 3), and its current <tt>procstate</tt> (e.g., SLEEPING,
+RUNNABLE, or RUNNING).  
+<p>
+To do this, you will need to fill in
+the <b>pstat</b> structure as defined here: <a href=pstat.h>here.</a>
+Do not change the names of the fields in pstat.h</p>
+
+<h3> Make a graph</h3> 
+
+You should make a graph (or set of graphs)
+that show some timelines of processes running with your scheduler,
+including which queue each process is on, and how much CPU they
+received.  
+<p> For this graph, you should run xv6 on only a single CPU (the
+default is two).  To do this, use:
+<pre>
+make qemu CPUS=1
+</pre>
+
+(Hint: When debugging you may find it useful to run on a single CPU.
+However, your final scheduler should work on any number of CPUs).
+
+<p>
+To obtain the info for your graph, you should use the
+<tt>getpinfo()</tt> system call.  Make up a workload (or set of workloads) that
+vary how long each process uses the CPU before voluntarily
+relinquishing the CPU (e.g., by calling sleep()).  Think about what
+types of workloads will show interesting and useful results.  Use the
+graphs to prove to us that your scheduler is working as desired.</p>
+
+
+<h2>Tips</h2> 
+
+<p>Most of the code for the scheduler is quite localized and can be found in
+<b>proc.c</b> ; the associated header file, <b>proc.h</b> is also quite useful to
+examine. To change the scheduler, not much needs to be done; study its control
+flow and then try some small changes.</p> 
+
+<p> As part of the information that you track for each process, you
+  will probably want to know its current priority level and the number
+  of timer ticks it has left (before it will be demoted to the next
+  lower priority or, if it is already at the lowest priority, moved to
+  the end of the round-robin queue).  
+
+<p>You'll need to understand how to fill in the structure <b>pstat</b> in the
+kernel and pass the results to user space. The structure looks like what you
+see in <a href=pstat.h>here.</a> </p> 
+
+<h2>The Code</h2> 
+
+<p>The source code for xv6 (and associated README) can be found in <b>
+~cs537-1/ta/xv6/</b> . Everything you need to build and run and even
+debug the kernel is in there.</p>
+
+<p>You may also find the following readings about xv6 useful, written by the
+same team that ported xv6 to x86:
+<a href=http://pdos.csail.mit.edu/6.828/2011/xv6/book-rev6.pdf>xv6 book.</a> </p> 
+
+<h2>What To Turn In</h2> 
+
+<p>Beyond the usual code, you'll have to <b>make a graph</b> for this
+assignment.   You can use whatever graphing tool you would like
+  ("gnuplot" is a fine, basic choice).  When
+  you have your graph, please create a .pdf version of it and place it
+  in a file named <b>graph.pdf</b>.  If you have multiple
+  graphs, name them <b>graph1.pdf</b>, <b>graph2.pdf</b> and so one.
+<p> Please describe the workload that you ran to create your graph and
+  explain why your graph shows the results that it does.  You can
+  either put this explanatory text directly in <b>graph.pdf</b> or in
+  a separate file <b>workload.pdf</b> or <b>workload.txt</b> (if you
+  use plain text).    These are the only formats and filenames you
+  should use.
+
+</td> </tr> </table> </center> </body> </html> 
+
+
+
+
+
+
+
