@@ -5,7 +5,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-//#include "pstat.h" // haiyun 
+#include "pstat.h" // haiyun 
 
 int mydebug = 0;
 
@@ -16,8 +16,8 @@ struct {
 
 
 // haiyun: define timeticks in each level
-// const int mlpq_timeticks[NLAYER] = { 5, 5, 10, 20}; 
-const int mlpq_timeticks[NLAYER] = { 10, 10, 20, 50}; 
+ const int mlpq_timeticks[NLAYER] = { 5, 5, 10, 20}; 
+// const int mlpq_timeticks[NLAYER] = { 10, 10, 20, 50}; 
 //const int mlpq_timeticks[NLAYER] = { 50, 50, 100, 200}; 
 // haiyun: define ninlevel
 int ninlevel[NLAYER] = { 0, 0, 0, 0};
@@ -25,7 +25,7 @@ int ninlevel[NLAYER] = { 0, 0, 0, 0};
 // haiyu: laststate to track the level and state every 100 ticks (1s)
 struct {
     int level[NPROC];
-    int timeticks[NPROC];
+    int timeticks[NPROC][NLAYER];
 } laststate;
 
 
@@ -65,7 +65,11 @@ found:
   p->pid = nextpid++;
 // haiyun allocproc
   p->level = 0; // new process at level 0
-  p->timeticks = mlpq_timeticks[0]; // initialize with level 0 time ticks
+ // p->timeticks = mlpq_timeticks[0]; // initialize with level 0 time ticks
+ int ii;
+ for ( ii = 0 ; ii < NLAYER; ++ii) {
+   p->timeticks[ii] = 0; // initialize each level with 0 time ticks
+ }
 //  ninlevel[0]++;
   release(&ptable.lock);
 
@@ -405,7 +409,7 @@ if(mydebug>5)
       switchuvm(p);
       p->state = RUNNING;
 
-        if (--(p->timeticks) != 0) {
+        if (++(p->timeticks[p->level])%mlpq_timeticks[p->level] != 0) {
             p--;
         } else { // tt used up
             if ( p->level != NLAYER-1) { // for 012 downgrade
@@ -416,9 +420,9 @@ if(mydebug)
                 ninlevel[p->level]++;
 if(mydebug)
 { cprintf("increase level[%d]: downgrade from upper level\n",p->level); }
+             //   p->timeticks[p->level] = mlpq_timeticks[p->level];
             }
             // for all proc, give new tt
-            p->timeticks = mlpq_timeticks[p->level];
         }
 
 
@@ -426,7 +430,8 @@ if(mydebug){
       cprintf(" before run %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
                     ninlevel[3]);
       cprintf("about to run %s [pid %d] [lvl %d] [tt %d]\n",
-                    proc->name, proc->pid,proc->level,proc->timeticks); 
+                    proc->name, proc->pid,proc->level,
+                    proc->timeticks[proc->level]);
 }
       // haiyun
       swtch(&cpu->scheduler, proc->context);
@@ -481,12 +486,12 @@ yield(void)
   // ninlevel[proc->level]++; // haiyun: new runnable proc
 if(mydebug)
 {
-  cprintf("Yield [pid %d] %d %s level %d timeticks left %d\n",
+  cprintf("Yield [pid %d] %d %s level %d timeticks used %d\n",
             proc->pid,
             proc->state,
             proc->name,
             proc->level,
-            proc->timeticks);
+            proc->timeticks[proc->level]);
   cprintf("on yield %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
             ninlevel[3]);
 }
@@ -613,29 +618,56 @@ if(mydebug){
 
 void // haiyun check starvation
 check_starve_and_boost(void) {
-    struct proc *p;
-    int i ;
-    acquire(&ptable.lock); 
-    for ( i = 0 ; i < NPROC ; ++i) {
-        p = &ptable.proc[i];
-        if ( p->state != RUNNABLE )
-            continue;
+  struct proc *p;
+  int i ;
+  acquire(&ptable.lock); 
+  for ( i = 0 ; i < NPROC ; ++i) {
+    p = &ptable.proc[i];
+    if ( p->state != RUNNABLE )
+      continue;
 
-        if (  p->level != 0 // skip level 0
-           && p->level == laststate.level[i] // same level  
-           && p->timeticks == laststate.timeticks[i]) { // same ttick
-        // STARVATION HAPPEN!
-        // boost up 1 level
-          ninlevel[p->level]--;
-          p->level--;
-          p->timeticks = mlpq_timeticks[p->level];
-          ninlevel[p->level]++;
-        }
-        // update lastestate array
-        laststate.level[i] = p->level;
-        laststate.timeticks[i] = p->timeticks;
+    if (  p->level != 0 // skip level 0
+       && p->level == laststate.level[i] // same level  
+       && p->timeticks[p->level] == laststate.timeticks[i][p->level]) {// same ttick
+    // STARVATION HAPPEN!
+    // boost up 1 level
+      ninlevel[p->level]--;
+      p->level--;
+      p->timeticks[p->level] = mlpq_timeticks[p->level];
+      ninlevel[p->level]++;
     }
-    release(&ptable.lock); 
+    // update lastestate array
+    laststate.level[i] = p->level;
+    laststate.timeticks[i][p->level] = p->timeticks[p->level];
+  }
+  release(&ptable.lock); 
+}
+
+
+// haiyun: update the pstat content passed by user
+int
+getpinfo(struct pstat* pstat) {
+    int i;
+    for (i = 0 ; i < NPROC ; ++i ) {
+         // if ( ptable.proc[i].state == UNUSED ) {
+         //     pstat->inuse[i] = 0;
+         // } else {
+         //     pstat->inuse[i] = 1;
+         // } // this 5 lines can be simplified as next line, since unused=0
+        pstat->inuse[i] = (ptable.proc[i]).state;
+        if ( pstat->inuse[i]) {
+            pstat->pid[i]      = ptable.proc[i].pid;
+            pstat->priority[i] = ptable.proc[i].level;
+            pstat->state[i]    = ptable.proc[i].state;
+            // need to pass the total ticks in each level
+            // haiyun todo
+            int ii;
+            for ( ii = 0 ; ii < NLAYER; ++ ii) {
+                pstat->ticks[i][ii] = ptable.proc[i].timeticks[ii];
+            }
+         }
+     }
+    return 0;
 }
 
 
@@ -667,7 +699,7 @@ procdump(void)
       state = "???";
     // cprintf("%d %s %s", p->pid, state, p->name);
     cprintf("%d %s %s lvl %d ttl %d", p->pid, state, p->name,
-            p->level, p->timeticks); //haiyun
+            p->level, p->timeticks[p->level]); //haiyun
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
       for(i=0; i<10 && pc[i] != 0; i++)

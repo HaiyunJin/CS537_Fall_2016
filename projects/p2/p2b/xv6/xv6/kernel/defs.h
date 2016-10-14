@@ -9,6 +9,7 @@ struct pipe;
 struct proc;
 struct spinlock;
 struct stat;
+struct pstat;
 
 // bio.c
 void            binit(void);
@@ -110,6 +111,7 @@ int             wait(void);
 void            wakeup(void*);
 void            yield(void);
 void            check_starve_and_boost(void); // haiyun add func check_starve
+int             getpinfo(struct pstat*); // haiyun: modify the pointing content
 
 // swtch.S
 void            swtch(struct context**, struct context*);

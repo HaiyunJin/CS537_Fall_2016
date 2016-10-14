@@ -106,11 +106,11 @@ trap(struct trapframe *tf)
   // If interrupts were on while locks held, would need to check nlock.
   if(proc && proc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER) {
     // haiyun: before yield, check if starve
-  if ( ++starve_clock == 100 ) {
-    starve_clock = 0; 
-    // do the starvation check here
-    check_starve_and_boost();
-  }
+    if ( ++starve_clock == 100 ) {
+      starve_clock = 0; 
+      // do the starvation check here
+      check_starve_and_boost();
+    }
 if (mydebugtrap) {
     cprintf("[pid %d] traped by timer\n",proc->pid);
 }

@@ -23,6 +23,6 @@ int sys_unlink(void);
 int sys_wait(void);
 int sys_write(void);
 int sys_uptime(void);
-// int sys_getpinfo(); // haiyun 
+int sys_getpinfo(void); // haiyun 
 
 #endif // _SYSFUNC_H_

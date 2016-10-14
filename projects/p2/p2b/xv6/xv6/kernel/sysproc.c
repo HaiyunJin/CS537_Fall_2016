@@ -5,7 +5,18 @@
 #include "mmu.h"
 #include "proc.h"
 #include "sysfunc.h"
-// #include "pstat.h"
+#include "pstat.h"
+
+//  sys_fork(void)
+//  sys_exit(void)
+//  sys_wait(void)
+//  sys_kill(void)
+//  sys_getpid(void)
+//  sys_sbrk(void)
+//  sys_sleep(void)
+//  sys_uptime(void)
+//  sys_getpinfo(void) { // haiyun
+
 
 int
 sys_fork(void)
@@ -91,11 +102,20 @@ sys_uptime(void)
 }
 
 
-// int
-// sys_getpinfo(void) { // haiyun
-//     struct pstat *mypstat;
-//     processstat(mypstat);
-//     mypstat = pstat;
-//     return ;
-// }
+int
+sys_getpinfo(void) { // haiyun
+//    int addr;
+//    struct pstat *pstat;
+    char *pstat;
+//    processstat(mypstat);
+//  mypstat = pstat;
+    
+    if( argptr(0, &pstat, sizeof(struct pstat)) < 0 ) {
+            return -1;
+    }
+    if ( getpinfo((struct pstat *)pstat) < 0 ) {
+        return -1;
+    }
+    return 0;
+}
 

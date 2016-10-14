@@ -9,6 +9,22 @@
 #include "fcntl.h"
 #include "sysfunc.h"
 
+// sys_dup(void)
+// sys_read(void)
+// sys_write(void)
+// sys_close(void)
+// sys_fstat(void)
+// sys_link(void)
+// sys_unlink(void)
+// sys_open(void)
+// sys_mkdir(void)
+// sys_mknod(void)
+// sys_chdir(void)
+// sys_exec(void)
+// sys_pipe(void)
+
+
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int

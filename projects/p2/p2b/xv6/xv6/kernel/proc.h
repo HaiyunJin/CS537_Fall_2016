@@ -79,7 +79,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   // haiyun status of process to track
   int level;                   // MLPQ level for current process
-  int timeticks;               // time ticks left for this level
+  int timeticks[NLAYER];               // time ticks left for this level
 };
 
 // Process memory is laid out contiguously, low addresses first:
