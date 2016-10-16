@@ -7,8 +7,7 @@
 #include "spinlock.h"
 #include "pstat.h" // haiyun 
 
-int mydebug = 0; // haiyun
-int mystat = 0; // haiyun
+int mydebug = 0;
 
 struct {
   struct spinlock lock;
@@ -66,30 +65,11 @@ found:
   p->pid = nextpid++;
 // haiyun allocproc
   p->level = 0; // new process at level 0
- // p->timeticks = mlpq_timeticks[0]; // initialize with level 0 time ticks
  int ii;
  for ( ii = 0 ; ii < NLAYER; ++ii) {
    p->timeticks[ii] = 0; // initialize each level with 0 time ticks
  }
-//  ninlevel[0]++;
   release(&ptable.lock);
-
-//   // update pstat // haiyun 
-//    int index = p - ptable.proc;
-//    int i = 0 ;
-//    //cprintf("index %d\n",index);  
-//    // cprintf("i %d\n",i);
-//    // cprintf("pstat point %p\n",pstat);
-//    // cprintf("ptable point %p\n",&ptable);
-//    pstat.inuse[index] = 1;
-//    pstat.pid[index] = p->pid;
-//    pstat.priority[index] = 0;
-//    pstat.state[index] = EMBRYO;
-//    for ( i = 0 ; i < NLAYER ; ++i ) {
-//      pstat.ticks[index][i] = 0;
-//    }
-// 
-    // cprintf("before run kstack\n");
 
 
   // Allocate kernel stack if possible.
@@ -144,11 +124,6 @@ userinit(void)
 
   p->state = RUNNABLE;
   ninlevel[p->level]++; // haiyun: new runnable proc
-if (mydebug) {
-    cprintf("increase level[%d]: userinit process\n",p->level);
-    cprintf("after [pid %d] created %d %d %d %d\n",p->pid,
-                ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
-}
 
   release(&ptable.lock);
 }
@@ -207,12 +182,7 @@ fork(void)
  
   pid = np->pid;
   np->state = RUNNABLE;
-  // haiyun
   ninlevel[0]++; // haiyun: new runnable proc from fork
-if(mystat) {
-  cprintf("start pid %d\n",np->pid);
-}
-  // haiyun
   safestrcpy(np->name, proc->name, sizeof(proc->name));
   return pid;
 }
@@ -256,22 +226,8 @@ exit(void)
 
   // Jump into the scheduler, never to return.
   proc->state = ZOMBIE;
-  // haiyun
   // haiyun exit: when process exit, decrease ninlevel
   ninlevel[proc->level]--;
-if(mydebug) {
-  cprintf("decrease level[%d]: proc exit\n",proc->level);
-        cprintf("after [pid %d] exit %d %d %d %d\n",proc->pid,
-                ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
-        cprintf("\n");
-}
-if(mystat) {
-  cprintf("exit  pid %d\n",proc->pid);
-}
-
-// haiyun
-//
-
   sched();
   panic("zombie exit");
 }
@@ -315,10 +271,6 @@ wait(void)
     }
 
     // Wait for children to exit.  (See wakeup1 call in proc_exit.)
-    // haiyun: call sleep
-if(mydebug){
-    cprintf("[pid %d] call wait sleep\n",proc->pid);
-}
     sleep(proc, &ptable.lock);  //DOC: wait-sleep
   }
 }
@@ -345,9 +297,7 @@ scheduler(void)
 
 
 int ii ;
-//loop_nlayer:
 for ( ii = 0 ; ii < NLAYER ; ++ii ) { // haiyun loop nlayer
-//    loop_proc:
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 
       if(p->state != RUNNABLE)
@@ -355,62 +305,16 @@ for ( ii = 0 ; ii < NLAYER ; ++ii ) { // haiyun loop nlayer
 
        int highestlevel = 0;
        while ( highestlevel < NLAYER-1 && ninlevel[highestlevel] == 0) {
-       //      cprintf("lowestlevel++");
              highestlevel++;
        }
-if(mydebug>5)
-{
-        cprintf(" level %d\n",highestlevel);
-}
-       //if ( ii == NLAYER ) ii--;
-    //   if ( lowestlevel == NLAYER ) lowestlevel--;
-    //  cprintf("Now in level %d\n",ii);
-
       if ( ii != highestlevel ) {
       // new lower level proc created, rescan ptable
         ii = highestlevel-1; // trick the for loop to start from highest level
         break ;
       }
-
       // haiyun: check for level ii
       if( p->level != ii ) 
         continue;
-
-    // haiyun: instead of when yield or sleep, decrease tt when picked up 
-// // MLPQ rule 8. downgrade for 012 level
-//     if ( p->level != NLAYER -1 ) {
-//         if ( --(p->timeticks) == 0 ) {
-//             ninlevel[p->level]--;
-// if(mydebug)
-// { 
-//     cprintf("decrease level[%d]: time slice used up\n",p->level);
-// }
-//             p->level++;
-//             p->timeticks = mlpq_timeticks[p->level];
-//             ninlevel[p->level]++;
-// if(mydebug)
-// {
-//     cprintf("increase level[%d]: downgrade from upper level\n",p->level);
-// }
-//         }
-//     }
-
-
-   // if can reach here, p->level must == highestlevel
-//    if ( p->level == highestlevel ) {
- //   }
-
-
-// // MLPQ rule 7. Use full timeslice if no higher priority proc
-//     if ( p->level == highestlevel ) {
-//         if (--(p->timeticks) != 0) {
-//             p--;
-//         } else {
-//             p->timeticks = mlpq_timeticks[NLAYER-1];
-//         }
-//     }
-     
-//    ninlevel[proc->level]--; // haiyun: not runnable any more
 
 
       // Switch to chosen process.  It is the process's job
@@ -422,49 +326,23 @@ if(mydebug>5)
       switchuvm(p);
       p->state = RUNNING;
 
-if(mystat){
-   cprintf("run   pid %d level %d ticks %d\n",
-               proc->pid,proc->level,
-               proc->timeticks[proc->level]);
-}
-
         if (++(p->timeticks[p->level])%mlpq_timeticks[p->level] != 0) {
             p--;
         } else { // tt used up
             if ( p->level != NLAYER-1) { // for 012 downgrade
                 ninlevel[p->level]--;
-if(mydebug) 
-{ cprintf("decrease level[%d]: time slice used up\n",p->level); }
                 p->level++;
                 ninlevel[p->level]++;
-if(mydebug)
-{ cprintf("increase level[%d]: downgrade from upper level\n",p->level); }
-             //   p->timeticks[p->level] = mlpq_timeticks[p->level];
             }
-            // for all proc, give new tt
         }
 
-if(mydebug){
-      cprintf(" before run %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
-                    ninlevel[3]);
-      cprintf("about to run %s [pid %d] [lvl %d] [tt %d]\n",
-                    proc->name, proc->pid,proc->level,
-                    proc->timeticks[proc->level]);
-}
 
       // haiyun
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
 
-
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-
-//      if ( proc->state == SLEEPING || proc->state == ZOMBIE ) {
-//          ninlevel[proc->level]--;
-//    } else if ( proc->state == RUNNABLE ) {
-//        ninlevel[proc->level]++; // back to runnable from running
-//      }
 
       proc = 0;
 
@@ -502,22 +380,6 @@ yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   proc->state = RUNNABLE;
-  // haiyun 
-if(mydebug)
-{
-  cprintf("Yield [pid %d] %d %s level %d timeticks used %d\n",
-            proc->pid,
-            proc->state,
-            proc->name,
-            proc->level,
-            proc->timeticks[proc->level]);
-  cprintf("on yield %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
-            ninlevel[3]);
-}
-if(mystat){
-    cprintf("yield pid %d\n",proc->pid);
-}
-  // haiyun end yield
 
   sched();
   release(&ptable.lock);
@@ -559,20 +421,9 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   proc->chan = chan;
   proc->state = SLEEPING;
-  // haiyun
   // haiyun when proc is sleeping, should not count in any level
   ninlevel[proc->level]--;
-if(mydebug){
-  cprintf("decrease level[%d]: go sleep\n",proc->level);
-  cprintf("[pid %d] goes sleep\n",proc->pid);
-  cprintf("after [pid %d] sleep %d %d %d %d\n",proc->pid,
-            ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
-}
-if(mystat){
-  cprintf("sleep pid %d level %d level %d\n",proc->pid,proc->level,
-          proc->timeticks[proc->level]);
-}
-  // haiyun
+
   sched();
 
   // Tidy up.
@@ -595,19 +446,8 @@ wakeup1(void *chan)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan) {
       p->state = RUNNABLE;
-      // haiyun
       // haiyun when proc wakeup, go to corresponding level
       ninlevel[p->level]++;
-if(mydebug){
-    cprintf("[pid %d] waked up\n",p->pid);
-    cprintf("increase level[%d]: from wake up\n",p->level);
-    cprintf("after [pid %d] waked up %d %d %d %d\n",p->pid,
-            ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
-}
-if(mystat){
-  cprintf("wake  pid %d\n",p->pid);
-}
-      // haiyun
     }
 }
 
@@ -636,9 +476,6 @@ kill(int pid)
       if(p->state == SLEEPING) {
         p->state = RUNNABLE;
         ninlevel[p->level]++;// haiyun when proc wakeup, go to corresponding level
-if(mydebug){
-    cprintf("increase level[%d]: waked up in kill method\n",p->level);
-}
       }
       release(&ptable.lock);
       return 0;
@@ -674,27 +511,6 @@ check_starve_and_boost(void) {
     laststate.timeticks[i][p->level] = p->timeticks[p->level];
   }
   release(&ptable.lock); 
-}
-
-// haiyun: update the pstat content passed by user
-int
-printpinfo(){
-  int i;
-  for (i = 0 ; i < NPROC ; ++i ) {
-    if ( (ptable.proc[i]).state ) {
-      cprintf("pid %d ",ptable.proc[i].pid);
-      cprintf("level %d ",ptable.proc[i].level);
-//      cprintf("state %s ",ptable.proc[i].state);
-      // need to pass the total ticks in each level
-      int ii;
-      for ( ii = 0 ; ii < NLAYER; ++ ii) {
-          cprintf("%d ",ptable.proc[i].timeticks[ii]);
-      }
-      cprintf("\n");
-    }
-  }
-  cprintf("\n");
-  return 0;
 }
 
 

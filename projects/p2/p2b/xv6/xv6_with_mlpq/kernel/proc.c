@@ -5,10 +5,9 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
-#include "pstat.h" // haiyun 
+//#include "pstat.h" // haiyun 
 
-int mydebug = 0; // haiyun
-int mystat = 0; // haiyun
+int mydebug = 0;
 
 struct {
   struct spinlock lock;
@@ -17,8 +16,8 @@ struct {
 
 
 // haiyun: define timeticks in each level
- const int mlpq_timeticks[NLAYER] = { 5, 5, 10, 20}; 
-// const int mlpq_timeticks[NLAYER] = { 10, 10, 20, 50}; 
+// const int mlpq_timeticks[NLAYER] = { 5, 5, 10, 20}; 
+const int mlpq_timeticks[NLAYER] = { 10, 10, 20, 50}; 
 //const int mlpq_timeticks[NLAYER] = { 50, 50, 100, 200}; 
 // haiyun: define ninlevel
 int ninlevel[NLAYER] = { 0, 0, 0, 0};
@@ -26,7 +25,7 @@ int ninlevel[NLAYER] = { 0, 0, 0, 0};
 // haiyu: laststate to track the level and state every 100 ticks (1s)
 struct {
     int level[NPROC];
-    int timeticks[NPROC][NLAYER];
+    int timeticks[NPROC];
 } laststate;
 
 
@@ -66,11 +65,7 @@ found:
   p->pid = nextpid++;
 // haiyun allocproc
   p->level = 0; // new process at level 0
- // p->timeticks = mlpq_timeticks[0]; // initialize with level 0 time ticks
- int ii;
- for ( ii = 0 ; ii < NLAYER; ++ii) {
-   p->timeticks[ii] = 0; // initialize each level with 0 time ticks
- }
+  p->timeticks = mlpq_timeticks[0]; // initialize with level 0 time ticks
 //  ninlevel[0]++;
   release(&ptable.lock);
 
@@ -207,12 +202,7 @@ fork(void)
  
   pid = np->pid;
   np->state = RUNNABLE;
-  // haiyun
   ninlevel[0]++; // haiyun: new runnable proc from fork
-if(mystat) {
-  cprintf("start pid %d\n",np->pid);
-}
-  // haiyun
   safestrcpy(np->name, proc->name, sizeof(proc->name));
   return pid;
 }
@@ -256,7 +246,6 @@ exit(void)
 
   // Jump into the scheduler, never to return.
   proc->state = ZOMBIE;
-  // haiyun
   // haiyun exit: when process exit, decrease ninlevel
   ninlevel[proc->level]--;
 if(mydebug) {
@@ -265,12 +254,6 @@ if(mydebug) {
                 ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
         cprintf("\n");
 }
-if(mystat) {
-  cprintf("exit  pid %d\n",proc->pid);
-}
-
-// haiyun
-//
 
   sched();
   panic("zombie exit");
@@ -422,13 +405,7 @@ if(mydebug>5)
       switchuvm(p);
       p->state = RUNNING;
 
-if(mystat){
-   cprintf("run   pid %d level %d ticks %d\n",
-               proc->pid,proc->level,
-               proc->timeticks[proc->level]);
-}
-
-        if (++(p->timeticks[p->level])%mlpq_timeticks[p->level] != 0) {
+        if (--(p->timeticks) != 0) {
             p--;
         } else { // tt used up
             if ( p->level != NLAYER-1) { // for 012 downgrade
@@ -439,19 +416,18 @@ if(mydebug)
                 ninlevel[p->level]++;
 if(mydebug)
 { cprintf("increase level[%d]: downgrade from upper level\n",p->level); }
-             //   p->timeticks[p->level] = mlpq_timeticks[p->level];
             }
             // for all proc, give new tt
+            p->timeticks = mlpq_timeticks[p->level];
         }
+
 
 if(mydebug){
       cprintf(" before run %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
                     ninlevel[3]);
       cprintf("about to run %s [pid %d] [lvl %d] [tt %d]\n",
-                    proc->name, proc->pid,proc->level,
-                    proc->timeticks[proc->level]);
+                    proc->name, proc->pid,proc->level,proc->timeticks); 
 }
-
       // haiyun
       swtch(&cpu->scheduler, proc->context);
       switchkvm();
@@ -502,20 +478,17 @@ yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
   proc->state = RUNNABLE;
-  // haiyun 
+  // ninlevel[proc->level]++; // haiyun: new runnable proc
 if(mydebug)
 {
-  cprintf("Yield [pid %d] %d %s level %d timeticks used %d\n",
+  cprintf("Yield [pid %d] %d %s level %d timeticks left %d\n",
             proc->pid,
             proc->state,
             proc->name,
             proc->level,
-            proc->timeticks[proc->level]);
+            proc->timeticks);
   cprintf("on yield %d %d %d %d\n",ninlevel[0],ninlevel[1],ninlevel[2],
             ninlevel[3]);
-}
-if(mystat){
-    cprintf("yield pid %d\n",proc->pid);
 }
   // haiyun end yield
 
@@ -559,7 +532,6 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   proc->chan = chan;
   proc->state = SLEEPING;
-  // haiyun
   // haiyun when proc is sleeping, should not count in any level
   ninlevel[proc->level]--;
 if(mydebug){
@@ -568,11 +540,6 @@ if(mydebug){
   cprintf("after [pid %d] sleep %d %d %d %d\n",proc->pid,
             ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
 }
-if(mystat){
-  cprintf("sleep pid %d level %d level %d\n",proc->pid,proc->level,
-          proc->timeticks[proc->level]);
-}
-  // haiyun
   sched();
 
   // Tidy up.
@@ -595,7 +562,6 @@ wakeup1(void *chan)
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan) {
       p->state = RUNNABLE;
-      // haiyun
       // haiyun when proc wakeup, go to corresponding level
       ninlevel[p->level]++;
 if(mydebug){
@@ -604,10 +570,6 @@ if(mydebug){
     cprintf("after [pid %d] waked up %d %d %d %d\n",p->pid,
             ninlevel[0],ninlevel[1],ninlevel[2],ninlevel[3]);
 }
-if(mystat){
-  cprintf("wake  pid %d\n",p->pid);
-}
-      // haiyun
     }
 }
 
@@ -651,71 +613,29 @@ if(mydebug){
 
 void // haiyun check starvation
 check_starve_and_boost(void) {
-  struct proc *p;
-  int i ;
-  acquire(&ptable.lock); 
-  for ( i = 0 ; i < NPROC ; ++i) {
-    p = &ptable.proc[i];
-    if ( p->state != RUNNABLE )
-      continue;
+    struct proc *p;
+    int i ;
+    acquire(&ptable.lock); 
+    for ( i = 0 ; i < NPROC ; ++i) {
+        p = &ptable.proc[i];
+        if ( p->state != RUNNABLE )
+            continue;
 
-    if (  p->level != 0 // skip level 0
-       && p->level == laststate.level[i] // same level  
-       && p->timeticks[p->level] == laststate.timeticks[i][p->level]) {// same ttick
-    // STARVATION HAPPEN!
-    // boost up 1 level
-      ninlevel[p->level]--;
-      p->level--;
-      p->timeticks[p->level] = mlpq_timeticks[p->level];
-      ninlevel[p->level]++;
+        if (  p->level != 0 // skip level 0
+           && p->level == laststate.level[i] // same level  
+           && p->timeticks == laststate.timeticks[i]) { // same ttick
+        // STARVATION HAPPEN!
+        // boost up 1 level
+          ninlevel[p->level]--;
+          p->level--;
+          p->timeticks = mlpq_timeticks[p->level];
+          ninlevel[p->level]++;
+        }
+        // update lastestate array
+        laststate.level[i] = p->level;
+        laststate.timeticks[i] = p->timeticks;
     }
-    // update lastestate array
-    laststate.level[i] = p->level;
-    laststate.timeticks[i][p->level] = p->timeticks[p->level];
-  }
-  release(&ptable.lock); 
-}
-
-// haiyun: update the pstat content passed by user
-int
-printpinfo(){
-  int i;
-  for (i = 0 ; i < NPROC ; ++i ) {
-    if ( (ptable.proc[i]).state ) {
-      cprintf("pid %d ",ptable.proc[i].pid);
-      cprintf("level %d ",ptable.proc[i].level);
-//      cprintf("state %s ",ptable.proc[i].state);
-      // need to pass the total ticks in each level
-      int ii;
-      for ( ii = 0 ; ii < NLAYER; ++ ii) {
-          cprintf("%d ",ptable.proc[i].timeticks[ii]);
-      }
-      cprintf("\n");
-    }
-  }
-  cprintf("\n");
-  return 0;
-}
-
-
-// haiyun: update the pstat content passed by user
-int
-getpinfo(struct pstat* pstat) {
-    int i;
-    for (i = 0 ; i < NPROC ; ++i ) {
-        pstat->inuse[i] = (ptable.proc[i]).state;
-        if ( pstat->inuse[i]) {
-            pstat->pid[i]      = ptable.proc[i].pid;
-            pstat->priority[i] = ptable.proc[i].level;
-            pstat->state[i]    = ptable.proc[i].state;
-            // need to pass the total ticks in each level
-            int ii;
-            for ( ii = 0 ; ii < NLAYER; ++ ii) {
-                pstat->ticks[i][ii] = ptable.proc[i].timeticks[ii];
-            }
-         }
-     }
-    return 0;
+    release(&ptable.lock); 
 }
 
 
@@ -747,7 +667,7 @@ procdump(void)
       state = "???";
     // cprintf("%d %s %s", p->pid, state, p->name);
     cprintf("%d %s %s lvl %d ttl %d", p->pid, state, p->name,
-            p->level, p->timeticks[p->level]); //haiyun
+            p->level, p->timeticks); //haiyun
     if(p->state == SLEEPING){
       getcallerpcs((uint*)p->context->ebp+2, pc);
       for(i=0; i<10 && pc[i] != 0; i++)

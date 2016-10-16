@@ -7,8 +7,7 @@
 #include "traps.h"
 #include "spinlock.h"
 
-extern int mydebug; // haiyun
-extern int mystat; // haiyun
+int mydebugtrap = 0; // haiyun
 
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
@@ -107,24 +106,12 @@ trap(struct trapframe *tf)
   // If interrupts were on while locks held, would need to check nlock.
   if(proc && proc->state == RUNNING && tf->trapno == T_IRQ0+IRQ_TIMER) {
     // haiyun: before yield, check if starve
-if(mystat){
-    if ( ++starve_clock%100 == 0 ) {
-      // do the starvation check here
-      check_starve_and_boost();
-    }
-//    cprintf("clock %d Current running pid %d level %d ticks %d\n",
-//            starve_clock,proc->pid,proc->level,proc->timeticks[proc->level]);
-    cprintf("clock %d\n",
-            starve_clock);
-//    printpinfo();
-}else{
-    if ( ++starve_clock == 100 ) {
-      starve_clock = 0; 
-      // do the starvation check here
-      check_starve_and_boost();
-    }
-}
-if (mydebug) {
+  if ( ++starve_clock == 100 ) {
+    starve_clock = 0; 
+    // do the starvation check here
+    check_starve_and_boost();
+  }
+if (mydebugtrap) {
     cprintf("[pid %d] traped by timer\n",proc->pid);
 }
     yield();

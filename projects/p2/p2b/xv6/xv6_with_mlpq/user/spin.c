@@ -14,8 +14,7 @@ main(int argc, char *argv[])
     exit();
   }
   for(i=1; i<atoi(argv[1]); i++)
-//  for ( j = 1 ; j < 1000000 ; ++j) {
-      for ( j = 1 ; j < 740740 ; ++j) {
+      for ( j = 1 ; j < 1000000 ; ++j) {
         x += 2;
       }
   exit();

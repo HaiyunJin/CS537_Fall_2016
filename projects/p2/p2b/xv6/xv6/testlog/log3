@@ -1,0 +1,789 @@
+gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 \
+		-M -MG user/getpinfotest.c -MF user/getpinfotest.d -MT user/getpinfotest.d -MT user/getpinfotest.o
+gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 -c -o user/getpinfotest.o user/getpinfotest.c
+ld  -m    elf_i386 -nostdlib --omagic --entry=main --section-start=.text=0x0 --output=user/bin/getpinfotest user/getpinfotest.o user/ulib.o user/usys.o user/printf.o user/umalloc.o
+cp user/bin/getpinfotest fs/getpinfotest
+./tools/mkfs fs.img fs
+used 29 (bit 1 ninode 26) free 29 total 1024
+README
+cat
+echo
+forktest
+grep
+init
+kill
+ln
+ls
+spin
+getpinfotest
+mkdir
+rm
+sh
+stressfs
+tester
+usertests
+wc
+zombie
+balloc: first 452 blocks have been allocated
+balloc: write bitmap block at sector 28
+Ctrl+a h for help
+/u/c/s/cs537-2/ta/tools/qemu -nographic -hdb fs.img xv6.img -smp 1
+xv6...
+cpu0: starting
+run   pid 1 level 0 ticks 0
+sleep pid 1 level 0 level 1
+wake  pid 1
+run   pid 1 level 0 ticks 1
+sleep pid 1 level 0 level 2
+wake  pid 1
+run   pid 1 level 0 ticks 2
+sleep pid 1 level 0 level 3
+wake  pid 1
+run   pid 1 level 0 ticks 3
+clock 1
+yield pid 1
+run   pid 1 level 0 ticks 4
+sleep pid 1 level 1 level 0
+wake  pid 1
+run   pid 1 level 1 ticks 0
+sleep pid 1 level 1 level 1
+wake  pid 1
+run   pid 1 level 1 ticks 1
+sleep pid 1 level 1 level 2
+wake  pid 1
+run   pid 1 level 1 ticks 2
+clock 2
+yield pid 1
+run   pid 1 level 1 ticks 3
+sleep pid 1 level 1 level 4
+wake  pid 1
+run   pid 1 level 1 ticks 4
+sleep pid 1 level 2 level 0
+wake  pid 1
+run   pid 1 level 2 ticks 0
+sleep pid 1 level 2 level 1
+wake  pid 1
+run   pid 1 level 2 ticks 1
+sleep pid 1 level 2 level 2
+wake  pid 1
+run   pid 1 level 2 ticks 2
+sleep pid 1 level 2 level 3
+wake  pid 1
+run   pid 1 level 2 ticks 3
+sleep pid 1 level 2 level 4
+wake  pid 1
+run   pid 1 level 2 ticks 4
+sleep pid 1 level 2 level 5
+wake  pid 1
+run   pid 1 level 2 ticks 5
+sleep pid 1 level 2 level 6
+wake  pid 1
+run   pid 1 level 2 ticks 6
+init: starting sh
+start pid 2
+sleep pid 1 level 2 level 7
+run   pid 2 level 0 ticks 0
+sleep pid 2 level 0 level 1
+wake  pid 2
+run   pid 2 level 0 ticks 1
+sleep pid 2 level 0 level 2
+wake  pid 2
+run   pid 2 level 0 ticks 2
+sleep pid 2 level 0 level 3
+wake  pid 2
+run   pid 2 level 0 ticks 3
+sleep pid 2 level 0 level 4
+wake  pid 2
+run   pid 2 level 0 ticks 4
+sleep pid 2 level 1 level 0
+wake  pid 2
+run   pid 2 level 1 ticks 0
+sleep pid 2 level 1 level 1
+wake  pid 2
+run   pid 2 level 1 ticks 1
+sleep pid 2 level 1 level 2
+wake  pid 2
+run   pid 2 level 1 ticks 2
+sleep pid 2 level 1 level 3
+wake  pid 2
+run   pid 2 level 1 ticks 3
+sleep pid 2 level 1 level 4
+wake  pid 2
+run   pid 2 level 1 ticks 4
+sleep pid 2 level 2 level 0
+wake  pid 2
+run   pid 2 level 2 ticks 0
+sleep pid 2 level 2 level 1
+wake  pid 2
+run   pid 2 level 2 ticks 1
+sleep pid 2 level 2 level 2
+wake  pid 2
+run   pid 2 level 2 ticks 2
+sleep pid 2 level 2 level 3
+wake  pid 2
+run   pid 2 level 2 ticks 3
+sleep pid 2 level 2 level 4
+wake  pid 2
+run   pid 2 level 2 ticks 4
+sleep pid 2 level 2 level 5
+wake  pid 2
+run   pid 2 level 2 ticks 5
+sleep pid 2 level 2 level 6
+wake  pid 2
+run   pid 2 level 2 ticks 6
+clock 3
+yield pid 2
+run   pid 2 level 2 ticks 7
+sleep pid 2 level 2 level 8
+wake  pid 2
+run   pid 2 level 2 ticks 8
+$ sleep pid 2 level 2 level 9
+getpinfotest
+wake  pid 2
+run   pid 2 level 2 ticks 9
+start pid 3
+sleep pid 2 level 3 level 0
+run   pid 3 level 0 ticks 0
+sleep pid 3 level 0 level 1
+wake  pid 3
+run   pid 3 level 0 ticks 1
+sleep pid 3 level 0 level 2
+wake  pid 3
+run   pid 3 level 0 ticks 2
+sleep pid 3 level 0 level 3
+wake  pid 3
+run   pid 3 level 0 ticks 3
+sleep pid 3 level 0 level 4
+wake  pid 3
+run   pid 3 level 0 ticks 4
+clock 4
+yield pid 3
+run   pid 3 level 1 ticks 0
+sleep pid 3 level 1 level 1
+wake  pid 3
+run   pid 3 level 1 ticks 1
+sleep pid 3 level 1 level 2
+wake  pid 3
+run   pid 3 level 1 ticks 2
+sleep pid 3 level 1 level 3
+wake  pid 3
+run   pid 3 level 1 ticks 3
+start pid 4
+sleep pid 3 level 1 level 4
+run   pid 4 level 0 ticks 0
+wake  pid 3
+clock 5
+yield pid 4
+run   pid 4 level 0 ticks 1
+clock 6
+yield pid 4
+run   pid 4 level 0 ticks 2
+clock 7
+yield pid 4
+run   pid 4 level 0 ticks 3
+clock 8
+yield pid 4
+run   pid 4 level 0 ticks 4
+clock 9
+yield pid 4
+run   pid 3 level 1 ticks 4
+sleep pid 3 level 2 level 0
+run   pid 4 level 1 ticks 0
+wake  pid 3
+clock 10
+yield pid 4
+run   pid 4 level 1 ticks 1
+clock 11
+yield pid 4
+run   pid 4 level 1 ticks 2
+clock 12
+yield pid 4
+run   pid 4 level 1 ticks 3
+clock 13
+yield pid 4
+run   pid 4 level 1 ticks 4
+clock 14
+yield pid 4
+run   pid 3 level 2 ticks 0
+sleep pid 3 level 2 level 1
+run   pid 4 level 2 ticks 0
+wake  pid 3
+clock 15
+yield pid 4
+run   pid 4 level 2 ticks 1
+clock 16
+yield pid 4
+run   pid 4 level 2 ticks 2
+clock 17
+yield pid 4
+run   pid 4 level 2 ticks 3
+clock 18
+yield pid 4
+run   pid 4 level 2 ticks 4
+clock 19
+yield pid 4
+run   pid 4 level 2 ticks 5
+clock 20
+yield pid 4
+run   pid 4 level 2 ticks 6
+clock 21
+yield pid 4
+run   pid 4 level 2 ticks 7
+clock 22
+yield pid 4
+run   pid 4 level 2 ticks 8
+clock 23
+yield pid 4
+run   pid 4 level 2 ticks 9
+clock 24
+yield pid 4
+run   pid 3 level 2 ticks 1
+sleep pid 3 level 2 level 2
+run   pid 4 level 3 ticks 0
+wake  pid 3
+clock 25
+yield pid 4
+run   pid 3 level 2 ticks 2
+sleep pid 3 level 2 level 3
+run   pid 4 level 3 ticks 1
+wake  pid 3
+clock 26
+yield pid 4
+run   pid 3 level 2 ticks 3
+sleep pid 3 level 2 level 4
+run   pid 4 level 3 ticks 2
+wake  pid 3
+clock 27
+yield pid 4
+run   pid 3 level 2 ticks 4
+sleep pid 3 level 2 level 5
+run   pid 4 level 3 ticks 3
+wake  pid 3
+clock 28
+yield pid 4
+run   pid 3 level 2 ticks 5
+sleep pid 3 level 2 level 6
+run   pid 4 level 3 ticks 4
+wake  pid 3
+clock 29
+yield pid 4
+run   pid 3 level 2 ticks 6
+sleep pid 3 level 2 level 7
+run   pid 4 level 3 ticks 5
+wake  pid 3
+clock 30
+yield pid 4
+run   pid 3 level 2 ticks 7
+sleep pid 3 level 2 level 8
+run   pid 4 level 3 ticks 6
+wake  pid 3
+clock 31
+yield pid 4
+run   pid 3 level 2 ticks 8
+sleep pid 3 level 2 level 9
+run   pid 4 level 3 ticks 7
+wake  pid 3
+clock 32
+yield pid 4
+run   pid 3 level 2 ticks 9
+sleep pid 3 level 3 level 0
+run   pid 4 level 3 ticks 8
+wake  pid 3
+clock 33
+yield pid 4
+run   pid 4 level 3 ticks 9
+clock 34
+yield pid 4
+run   pid 4 level 3 ticks 10
+clock 35
+yield pid 4
+run   pid 4 level 3 ticks 11
+clock 36
+yield pid 4
+run   pid 4 level 3 ticks 12
+clock 37
+yield pid 4
+run   pid 4 level 3 ticks 13
+clock 38
+yield pid 4
+run   pid 4 level 3 ticks 14
+clock 39
+yield pid 4
+run   pid 4 level 3 ticks 15
+clock 40
+yield pid 4
+run   pid 4 level 3 ticks 16
+clock 41
+yield pid 4
+run   pid 4 level 3 ticks 17
+clock 42
+yield pid 4
+run   pid 4 level 3 ticks 18
+clock 43
+yield pid 4
+run   pid 4 level 3 ticks 19
+clock 44
+yield pid 4
+run   pid 3 level 3 ticks 0
+sleep pid 3 level 3 level 1
+run   pid 4 level 3 ticks 20
+wake  pid 3
+clock 45
+yield pid 4
+run   pid 4 level 3 ticks 21
+clock 46
+yield pid 4
+run   pid 4 level 3 ticks 22
+clock 47
+yield pid 4
+run   pid 4 level 3 ticks 23
+clock 48
+yield pid 4
+run   pid 4 level 3 ticks 24
+clock 49
+yield pid 4
+run   pid 4 level 3 ticks 25
+clock 50
+yield pid 4
+run   pid 4 level 3 ticks 26
+clock 51
+yield pid 4
+run   pid 4 level 3 ticks 27
+clock 52
+yield pid 4
+run   pid 4 level 3 ticks 28
+clock 53
+yield pid 4
+run   pid 4 level 3 ticks 29
+clock 54
+yield pid 4
+run   pid 4 level 3 ticks 30
+clock 55
+yield pid 4
+run   pid 4 level 3 ticks 31
+clock 56
+yield pid 4
+run   pid 4 level 3 ticks 32
+clock 57
+yield pid 4
+run   pid 4 level 3 ticks 33
+clock 58
+yield pid 4
+run   pid 4 level 3 ticks 34
+clock 59
+yield pid 4
+run   pid 4 level 3 ticks 35
+clock 60
+yield pid 4
+run   pid 4 level 3 ticks 36
+clock 61
+yield pid 4
+run   pid 4 level 3 ticks 37
+clock 62
+yield pid 4
+run   pid 4 level 3 ticks 38
+clock 63
+yield pid 4
+run   pid 4 level 3 ticks 39
+clock 64
+yield pid 4
+run   pid 3 level 3 ticks 1
+clock 65
+yield pid 3
+run   pid 3 level 3 ticks 2
+clock 66
+yield pid 3
+run   pid 3 level 3 ticks 3
+clock 67
+yield pid 3
+run   pid 3 level 3 ticks 4
+clock 68
+yield pid 3
+run   pid 3 level 3 ticks 5
+clock 69
+yield pid 3
+run   pid 3 level 3 ticks 6
+clock 70
+yield pid 3
+run   pid 3 level 3 ticks 7
+clock 71
+yield pid 3
+run   pid 3 level 3 ticks 8
+clock 72
+yield pid 3
+run   pid 3 level 3 ticks 9
+clock 73
+yield pid 3
+run   pid 3 level 3 ticks 10
+clock 74
+yield pid 3
+run   pid 3 level 3 ticks 11
+clock 75
+yield pid 3
+run   pid 3 level 3 ticks 12
+clock 76
+yield pid 3
+run   pid 3 level 3 ticks 13
+clock 77
+yield pid 3
+run   pid 3 level 3 ticks 14
+clock 78
+yield pid 3
+run   pid 3 level 3 ticks 15
+clock 79
+yield pid 3
+run   pid 3 level 3 ticks 16
+clock 80
+yield pid 3
+run   pid 3 level 3 ticks 17
+clock 81
+yield pid 3
+run   pid 3 level 3 ticks 18
+clock 82
+yield pid 3
+run   pid 3 level 3 ticks 19
+clock 83
+yield pid 3
+run   pid 4 level 3 ticks 40
+clock 84
+yield pid 4
+run   pid 4 level 3 ticks 41
+clock 85
+yield pid 4
+run   pid 4 level 3 ticks 42
+clock 86
+yield pid 4
+run   pid 4 level 3 ticks 43
+clock 87
+yield pid 4
+run   pid 4 level 3 ticks 44
+clock 88
+yield pid 4
+run   pid 4 level 3 ticks 45
+clock 89
+yield pid 4
+run   pid 4 level 3 ticks 46
+clock 90
+yield pid 4
+run   pid 4 level 3 ticks 47
+clock 91
+yield pid 4
+run   pid 4 level 3 ticks 48
+clock 92
+yield pid 4
+run   pid 4 level 3 ticks 49
+clock 93
+yield pid 4
+run   pid 4 level 3 ticks 50
+clock 94
+yield pid 4
+run   pid 4 level 3 ticks 51
+clock 95
+yield pid 4
+run   pid 4 level 3 ticks 52
+clock 96
+yield pid 4
+run   pid 4 level 3 ticks 53
+clock 97
+yield pid 4
+run   pid 4 level 3 ticks 54
+clock 98
+yield pid 4
+run   pid 4 level 3 ticks 55
+clock 99
+yield pid 4
+run   pid 4 level 3 ticks 56
+clock 100
+yield pid 4
+run   pid 4 level 3 ticks 57
+clock 101
+yield pid 4
+run   pid 4 level 3 ticks 58
+clock 102
+yield pid 4
+run   pid 4 level 3 ticks 59
+clock 103
+yield pid 4
+run   pid 3 level 3 ticks 20
+clock 104
+yield pid 3
+run   pid 3 level 3 ticks 21
+clock 105
+yield pid 3
+run   pid 3 level 3 ticks 22
+clock 106
+yield pid 3
+run   pid 3 level 3 ticks 23
+clock 107
+yield pid 3
+run   pid 3 level 3 ticks 24
+clock 108
+yield pid 3
+run   pid 3 level 3 ticks 25
+clock 109
+yield pid 3
+run   pid 3 level 3 ticks 26
+clock 110
+yield pid 3
+run   pid 3 level 3 ticks 27
+clock 111
+yield pid 3
+run   pid 3 level 3 ticks 28
+clock 112
+yield pid 3
+run   pid 3 level 3 ticks 29
+clock 113
+yield pid 3
+run   pid 3 level 3 ticks 30
+clock 114
+yield pid 3
+run   pid 3 level 3 ticks 31
+clock 115
+yield pid 3
+run   pid 3 level 3 ticks 32
+clock 116
+yield pid 3
+run   pid 3 level 3 ticks 33
+clock 117
+yield pid 3
+run   pid 3 level 3 ticks 34
+clock 118
+yield pid 3
+run   pid 3 level 3 ticks 35
+clock 119
+yield pid 3
+run   pid 3 level 3 ticks 36
+clock 120
+yield pid 3
+run   pid 3 level 3 ticks 37
+clock 121
+yield pid 3
+run   pid 3 level 3 ticks 38
+clock 122
+yield pid 3
+run   pid 3 level 3 ticks 39
+clock 123
+yield pid 3
+run   pid 4 level 3 ticks 60
+clock 124
+yield pid 4
+run   pid 4 level 3 ticks 61
+clock 125
+yield pid 4
+run   pid 4 level 3 ticks 62
+clock 126
+yield pid 4
+run   pid 4 level 3 ticks 63
+clock 127
+yield pid 4
+run   pid 4 level 3 ticks 64
+clock 128
+yield pid 4
+run   pid 4 level 3 ticks 65
+clock 129
+yield pid 4
+run   pid 4 level 3 ticks 66
+clock 130
+yield pid 4
+run   pid 4 level 3 ticks 67
+clock 131
+yield pid 4
+run   pid 4 level 3 ticks 68
+clock 132
+yield pid 4
+run   pid 4 level 3 ticks 69
+clock 133
+yield pid 4
+run   pid 4 level 3 ticks 70
+clock 134
+yield pid 4
+run   pid 4 level 3 ticks 71
+clock 135
+yield pid 4
+run   pid 4 level 3 ticks 72
+clock 136
+yield pid 4
+run   pid 4 level 3 ticks 73
+clock 137
+yield pid 4
+run   pid 4 level 3 ticks 74
+clock 138
+yield pid 4
+run   pid 4 level 3 ticks 75
+clock 139
+yield pid 4
+run   pid 4 level 3 ticks 76
+clock 140
+yield pid 4
+run   pid 4 level 3 ticks 77
+clock 141
+yield pid 4
+run   pid 4 level 3 ticks 78
+exit  pid 4
+run   pid 3 level 3 ticks 40
+clock 142
+yield pid 3
+run   pid 3 level 3 ticks 41
+clock 143
+yield pid 3
+run   pid 3 level 3 ticks 42
+clock 144
+yield pid 3
+run   pid 3 level 3 ticks 43
+clock 145
+yield pid 3
+run   pid 3 level 3 ticks 44
+clock 146
+yield pid 3
+run   pid 3 level 3 ticks 45
+clock 147
+yield pid 3
+run   pid 3 level 3 ticks 46
+clock 148
+yield pid 3
+run   pid 3 level 3 ticks 47
+clock 149
+yield pid 3
+run   pid 3 level 3 ticks 48
+clock 150
+yield pid 3
+run   pid 3 level 3 ticks 49
+clock 151
+yield pid 3
+run   pid 3 level 3 ticks 50
+clock 152
+yield pid 3
+run   pid 3 level 3 ticks 51
+clock 153
+yield pid 3
+run   pid 3 level 3 ticks 52
+clock 154
+yield pid 3
+run   pid 3 level 3 ticks 53
+clock 155
+yield pid 3
+run   pid 3 level 3 ticks 54
+clock 156
+yield pid 3
+run   pid 3 level 3 ticks 55
+clock 157
+yield pid 3
+run   pid 3 level 3 ticks 56
+clock 158
+yield pid 3
+run   pid 3 level 3 ticks 57
+clock 159
+yield pid 3
+run   pid 3 level 3 ticks 58
+clock 160
+yield pid 3
+run   pid 3 level 3 ticks 59
+clock 161
+yield pid 3
+run   pid 3 level 3 ticks 60
+clock 162
+yield pid 3
+run   pid 3 level 3 ticks 61
+clock 163
+yield pid 3
+run   pid 3 level 3 ticks 62
+clock 164
+yield pid 3
+run   pid 3 level 3 ticks 63
+clock 165
+yield pid 3
+run   pid 3 level 3 ticks 64
+clock 166
+yield pid 3
+run   pid 3 level 3 ticks 65
+clock 167
+yield pid 3
+run   pid 3 level 3 ticks 66
+clock 168
+yield pid 3
+run   pid 3 level 3 ticks 67
+clock 169
+yield pid 3
+run   pid 3 level 3 ticks 68
+clock 170
+yield pid 3
+run   pid 3 level 3 ticks 69
+clock 171
+yield pid 3
+run   pid 3 level 3 ticks 70
+clock 172
+yield pid 3
+run   pid 3 level 3 ticks 71
+clock 173
+yield pid 3
+run   pid 3 level 3 ticks 72
+clock 174
+yield pid 3
+run   pid 3 level 3 ticks 73
+clock 175
+yield pid 3
+run   pid 3 level 3 ticks 74
+clock 176
+yield pid 3
+run   pid 3 level 3 ticks 75
+clock 177
+yield pid 3
+run   pid 3 level 3 ticks 76
+clock 178
+yield pid 3
+run   pid 3 level 3 ticks 77
+clock 179
+yield pid 3
+run   pid 3 level 3 ticks 78
+clock 180
+yield pid 3
+run   pid 3 level 3 ticks 79
+clock 181
+yield pid 3
+run   pid 3 level 3 ticks 80
+clock 182
+yield pid 3
+run   pid 3 level 3 ticks 81
+clock 183
+yield pid 3
+run   pid 3 level 3 ticks 82
+clock 184
+yield pid 3
+run   pid 3 level 3 ticks 83
+clock 185
+yield pid 3
+run   pid 3 level 3 ticks 84
+clock 186
+yield pid 3
+run   pid 3 level 3 ticks 85
+clock 187
+yield pid 3
+run   pid 3 level 3 ticks 86
+clock 188
+yield pid 3
+run   pid 3 level 3 ticks 87
+clock 189
+yield pid 3
+run   pid 3 level 3 ticks 88
+clock 190
+yield pid 3
+run   pid 3 level 3 ticks 89
+clock 191
+yield pid 3
+run   pid 3 level 3 ticks 90
+clock 192
+yield pid 3
+run   pid 3 level 3 ticks 91
+clock 193
+yield pid 3
+run   pid 3 level 3 ticks 92
+wake  pid 2
+wake  pid 1
+exit  pid 3
+run   pid 1 level 2 ticks 7
+zombie!
+sleep pid 1 level 2 level 8
+run   pid 2 level 3 ticks 0
+$ sleep pid 2 level 3 level 1
+QEMU: Terminated
+
