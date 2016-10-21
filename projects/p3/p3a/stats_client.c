@@ -11,21 +11,16 @@ void usage() {
 }
 
 int main(int argc, char *argv[] ) {
-
-    if ( argc != 4 ) {
+    if ( argc != 4 )
         usage();
-    }
     key_t key = (key_t) atoi(argv[2]);
     if ( key == 0 ) {
         perror("Invalid key");
         exit(1);
     }
-
     char *message = argv[3];
 
-//     key_t key = 100;
     size_t pagesize = (size_t) getpagesize();
-
     int id  = shmget(key, pagesize, IPC_CREAT | SHM_R |SHM_W);
     char* addr = (char*)shmat(id, NULL, 0);
 
@@ -35,7 +30,6 @@ int main(int argc, char *argv[] ) {
         ++i;
     }
     addr[i] = '\0';
-
     return 0;
 }
 

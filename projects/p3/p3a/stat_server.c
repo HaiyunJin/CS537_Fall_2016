@@ -22,7 +22,7 @@ int main(int argc, char *argv[] ) {
     char* addr = (char*)shmat(id, NULL, 0);
 
     while ( 1) {
-        printf("Message: ");
+        printf("Message[key %d]:",key);
         printf("%s\n", addr);
         sleep(1);
     }
