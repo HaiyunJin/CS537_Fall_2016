@@ -1,0 +1,23 @@
+
+getpagesize()
+
+shmget
+IPC_CREAT   create if not exist
+SHM_R       read permission
+SHM_W       write permission
+return a point to the address of the page
+
+shmat(id, NULL, 0) 
+returns void *
+
+memset(p, '\0', page_size)
+
+sleep(1)  sleep 1 sec user level
+
+sprintf(p,"%s",data)
+    write into p
+
+
+
+
+
