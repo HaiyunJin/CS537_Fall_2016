@@ -1,27 +1,36 @@
 #####################################################################
 #
-# mysh.c is the name of your source code; you may change this.
-# However, you must keep the name of the executable as "mysh".
-#
-# Type "make" or "make mysh" to compile your code
+# Type "make" or "make all" to compile code
 # 
 # Type "make clean" to remove the executable (and any object files)
 #
 #####################################################################
 
 CC=gcc
-CFLAGS=-Wall -g
-#CFLAGS=-g
+CFLAGS=-Wall -Werror
+GDB=-g
+RM = rm -f
+LFLAGS = -lstats -L.
+
+SOURCES=stat_server.c stats_client.c
 EXECUTABLE = stat_server stats_client
+LIBSOURCES = stats.c
+LIBS = libstats.so
+OBJECTS = stat_server.o stats_client.o stats.o
 
+all:$(SOURCES) $(LIBSOURCES) $(EXECUTABLE) $(LIBS)
 
-all:$(EXECUTABLE)
+stat_server : stat_server.c
+	$(CC) $(CFLAGS) $< -o $@
 
-stat_server: stat_server.c
-	$(CC) -o stat_server $(CFLAGS) stat_server.c
+stats_client : stats_client.c
+	$(CC) $(CFLAGS) $< -o $@ $(LFLAGS)
 
-stats_client: stats_client.c
-	$(CC) -o stats_client $(CFLAGS) stats_client.c
+stats.o : stats.c
+	$(CC) $(CFLAGS) -c -fpic $< 
+
+libstats.so : stats.o
+	$(CC) -shared $< -o $@
 
 clean:
-	$(RM) stats_client stat_server
+	$(RM) $(EXECUTABLE) $(OBJECTS) 

@@ -17,7 +17,8 @@ sleep(1)  sleep 1 sec user level
 sprintf(p,"%s",data)
     write into p
 
-
+ipcs : check shared memory
+ipcrm shm [shmid]  : delete shared memory
 
 
 
