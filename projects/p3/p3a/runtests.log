@@ -1,0 +1,99 @@
+starting build
+
+**********************************************************************
+
+Test build
+build project using make
+
+**********************************************************************
+Trying to clean project using make clean
+make clean
+rm -f stats_server stats_client stats_server.o stats_client.o stats.o libstats.so
+Trying to build project using make
+make
+gcc -Wall -Werror -pthread -lrt -c -fpic stats.c 
+gcc -shared stats.o -o libstats.so
+gcc -Wall -Werror -pthread -lrt stats_server.c -o stats_server -g
+gcc -Wall -Werror -pthread -lrt stats_client.c -o stats_client -lstats -L. -g
+
+
+test build PASSED
+ (build project using make)
+
+starting linttest
+
+**********************************************************************
+
+Test linttest
+Lint test for C programming style
+
+**********************************************************************
+/u/c/s/cs537-1/ta/tests/3a/../../lint/cpplint.py --extensions c stats_client.c stats_server.c stats.c
+Done processing stats_client.c
+Done processing stats_server.c
+Done processing stats.c
+Total errors found: 0
+
+
+test linttest PASSED (6 of 6)
+ (Lint test for C programming style)
+
+starting clientnoservertest
+
+**********************************************************************
+
+Test clientnoservertest
+Client should exit gracefully if no server is running
+
+**********************************************************************
+
+
+test clientnoservertest PASSED (6 of 6)
+ (Client should exit gracefully if no server is running)
+
+starting defaultargstest
+
+**********************************************************************
+
+Test defaultargstest
+Test that client chooses default values for unspecified args
+
+**********************************************************************
+
+
+test defaultargstest PASSED (6 of 6)
+ (Test that client chooses default values for unspecified args)
+
+starting clientservertest
+
+**********************************************************************
+
+Test clientservertest
+Test basic functionality for one client & server
+
+**********************************************************************
+
+
+test clientservertest PASSED (6 of 6)
+ (Test basic functionality for one client & server)
+
+**********************************************************************
+Summary:
+test build PASSED
+ (build project using make)
+
+test linttest PASSED (6 of 6)
+ (Lint test for C programming style)
+
+test clientnoservertest PASSED (6 of 6)
+ (Client should exit gracefully if no server is running)
+
+test defaultargstest PASSED (6 of 6)
+ (Test that client chooses default values for unspecified args)
+
+test clientservertest PASSED (6 of 6)
+ (Test basic functionality for one client & server)
+
+Passed 5 of 5 tests.
+Overall 5 of 5
+Points 24 of 24

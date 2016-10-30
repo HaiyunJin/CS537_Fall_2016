@@ -7,30 +7,31 @@
 #####################################################################
 
 CC=gcc
-CFLAGS=-Wall -Werror
+CFLAGS=-Wall -Werror -pthread -lrt
 GDB=-g
+# GDB=
 RM = rm -f
 LFLAGS = -lstats -L.
 
-SOURCES=stat_server.c stats_client.c
-EXECUTABLE = stat_server stats_client
+SOURCES=stats_server.c stats_client.c
+EXECUTABLE = stats_server stats_client
 LIBSOURCES = stats.c
 LIBS = libstats.so
-OBJECTS = stat_server.o stats_client.o stats.o
+OBJECTS = stats_server.o stats_client.o stats.o
 
-all:$(SOURCES) $(LIBSOURCES) $(EXECUTABLE) $(LIBS)
+all:$(SOURCES) $(LIBSOURCES) $(LIBS) $(EXECUTABLE) stats.h
 
-stat_server : stat_server.c
-	$(CC) $(CFLAGS) $< -o $@
+stats_server : stats_server.c defs.h stats.h
+	$(CC) $(CFLAGS) $< -o $@ $(GDB)
 
-stats_client : stats_client.c
-	$(CC) $(CFLAGS) $< -o $@ $(LFLAGS)
+stats_client : stats_client.c defs.h stats.h
+	$(CC) $(CFLAGS) $< -o $@ $(LFLAGS) $(GDB)
 
-stats.o : stats.c
+stats.o : stats.c stats.h defs.h
 	$(CC) $(CFLAGS) -c -fpic $< 
 
-libstats.so : stats.o
+libstats.so : stats.o 
 	$(CC) -shared $< -o $@
 
 clean:
-	$(RM) $(EXECUTABLE) $(OBJECTS) 
+	$(RM) $(EXECUTABLE) $(OBJECTS) $(LIBS)

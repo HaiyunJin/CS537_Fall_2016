@@ -100,9 +100,10 @@ if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
 set shortmess=aoO
+badd +16 Makefile
 badd +23 ~/.bashrc.local
 badd +8 ~/private/cs537/projects/p1/p1a/varsort.c
-badd +25 stat_server.c
+badd +1 stat_server.c
 badd +29 ~/private/cs537/projects/p2/p2a/mysh.c
 badd +1 notes
 badd +1 stats_client.c
@@ -110,6 +111,7 @@ badd +4 stats.h
 badd +1 defs.h
 badd +1 libstats.c
 badd +1 stats.c
+badd +1 stats_server.c
 args ~/private/cs537/projects/p1/p1a/varsort.c
 edit notes
 set splitbelow splitright
@@ -224,7 +226,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 21 - ((18 * winheight(0) + 16) / 32)
+let s:l = 21 - ((20 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -343,13 +345,13 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 6 - ((5 * winheight(0) + 16) / 32)
+let s:l = 6 - ((5 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 6
 normal! 0
-tabedit stat_server.c
+tabedit stats_server.c
 set splitbelow splitright
 set nosplitbelow
 set nosplitright
@@ -462,11 +464,11 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 3 - ((2 * winheight(0) + 16) / 32)
+let s:l = 2 - ((1 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-3
+2
 normal! 0
 tabedit stats.c
 set splitbelow splitright
@@ -581,12 +583,12 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 16) / 32)
+let s:l = 28 - ((27 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-1
-normal! 0
+28
+normal! 060|
 tabedit stats.h
 set splitbelow splitright
 set nosplitbelow
@@ -700,7 +702,7 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 6 - ((5 * winheight(0) + 16) / 32)
+let s:l = 6 - ((5 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
@@ -819,13 +821,13 @@ setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
 silent! normal! zE
-let s:l = 1 - ((0 * winheight(0) + 16) / 32)
+let s:l = 1 - ((0 * winheight(0) + 20) / 41)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
 1
 normal! 027|
-tabnext 3
+tabnext 4
 if exists('s:wipebuf')
   silent exe 'bwipe ' . s:wipebuf
 endif

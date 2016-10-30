@@ -21,4 +21,6 @@ ipcs : check shared memory
 ipcrm shm [shmid]  : delete shared memory
 
 
+Command to find the include file:
+`gcc -print-prog-name=cc1` -v
 
