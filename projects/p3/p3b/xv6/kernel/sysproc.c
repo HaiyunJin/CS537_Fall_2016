@@ -90,15 +90,14 @@ sys_uptime(void)
 }
 
 // haiyun add the following
-// shmgetat(int key, int num_pages);  // haiyun
+// void *shmgetat(int key, int num_pages);  // haiyun
 int
 sys_shmgetat(void)  // haiyun
 {
-  return 100;
   int key;
   int num_pages;
   
-  if(argint(0, &key) < 0 || argint(1, &num_pages) < 0 )
+  if(argint(0, &key) < 0 || argint(1, &num_pages) < 0 || key < 0 )
     return -1;
   return (int) shmgetat(key, num_pages);
 }
@@ -106,9 +105,9 @@ sys_shmgetat(void)  // haiyun
 int
 sys_shm_refcount(void)               // haiyun
 {
-  return 100;
   int key;
-  if(argint(0, &key) < 0 )
+
+  if(argint(0, &key) < 0 || key < 0 ) 
     return -1;
   return (int) shm_refcount(key);
 }

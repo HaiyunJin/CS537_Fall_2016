@@ -1,6 +1,7 @@
 #ifndef _DEFS_H_
 #define _DEFS_H_
 
+
 struct buf;
 struct context;
 struct file;

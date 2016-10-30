@@ -6,6 +6,11 @@
 #include "proc.h"
 #include "elf.h"
 
+
+
+int debug = 1;
+
+
 extern char data[];  // defined in data.S
 
 static pde_t *kpgdir;  // for use in scheduler()
@@ -367,7 +372,8 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
 
 
 // haiyun add the following
-#define SHMEM_PAGES 4
+#define SHMEM_PAGES 4 // should be 8
+#define SHMEM_MAX_PAGES 4
 int shmem_count[SHMEM_PAGES];
 void *shmem_addr[SHMEM_PAGES];
 
@@ -387,14 +393,43 @@ shmeminit(void) {
 // add two syscall
 // shmgetat and shm_refcount
 
-void *shmgetat(int key, int num_pages){
-  return (void*) 111;
-}
-
+// easy one done
 int shm_refcount(int key) {
-  return 111;
+  if ( key >= SHMEM_PAGES )  // invaild key
+    return -1;
+  return shmem_count[key];
 }
 
+// hard one:
+void *shmgetat(int key, int num_pages){
+  if ( key >= SHMEM_PAGES )
+    return (void *)-1; // invaild key or num_pages
+  // main code start here
+  // if old page, return the existing addr
+  if(shmem_count[key] != 0 )
+    return (void *) shmem_addr[key];
+
+  // otherwise new page, need to allocate
+  if ( num_pages < 0 || num_pages >= SHMEM_MAX_PAGES )
+    return (void *)-1; // invalid page number
+
+  int i;
+  for ( i = 0 ; i < num_pages ; ++i ) {
+    if ( (shmem_addr[key] = kalloc() ) == 0 ) {
+      cprintf("Alocate page failed\n");
+      return (void *)-1; // page alloc failed
+    }
+  }
+  shmem_count[key]++;
+if(debug)  cprintf("Page allocated %x\n", ( unsigned int)shmem_addr[key]);
+//   sz
+//   mappages(pgdir, (char*)a, PGSIZE, PADDR(mem), PTE_W|PTE_U);
+//   memset(mem, 0, PGSIZE);
+
+  return shmem_addr[key];
+}
+
+// kfree()
 //     memset(mem, 0, PGSIZE);
 //     mappages(pgdir, (char*)a, PGSIZE, PADDR(mem), PTE_W|PTE_U);
 //     exit() -> free AS 
