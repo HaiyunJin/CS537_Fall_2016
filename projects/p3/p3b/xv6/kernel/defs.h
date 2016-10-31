@@ -172,7 +172,8 @@ int             copyout(pde_t*, uint, void*, uint);
 void            shmeminit(void);                  // haiyun
 void*           shmgetat(int key, int num_pages); // haiyun
 int             shm_refcount(int key);            // haiyun
-
+int             shm_decrease_count(int key);       // haiyun
+int             shm_increase_count(int key);       // haiyun
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))

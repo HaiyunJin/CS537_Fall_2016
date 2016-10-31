@@ -7,6 +7,8 @@
 #include "syscall.h"
 #include "sysfunc.h"
 
+extern int debug; // haiyun
+
 // User code makes a system call with INT T_SYSCALL.
 // System call number in %eax.
 // Arguments on the stack, from the user call to the C
@@ -31,14 +33,46 @@ fetchstr(struct proc *p, uint addr, char **pp)
 {
   char *s, *ep;
 
-  if(addr >= p->sz)
-    return -1;
+  if(addr >= p->sz ) { 
+    // haiyun: 2 cases,
+    if ( addr < p->shmtop ) {
+      // 1. normal va, exceed sz
+      return -1;
+    } 
+    // 2. accessing shm
+    goto shmcode;
+  }
   *pp = (char*)addr;
   ep = (char*)p->sz;
+//   for(s = *pp; s < ep; s++)
   for(s = *pp; s < ep; s++)
     if(*s == 0)
       return s - *pp;
+if(debug) cprintf("return at syscall 51\n");
   return -1;
+
+shmcode:  // haiyun, special for shm access
+  *pp = (char*)addr;
+  addr = (uint) PGROUNDDOWN(addr);
+  int i;
+  // walk through to find the bound of this shm region
+  for(;;) {  
+    for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
+      if ( addr == p->shmem_vaddr[i] ) {
+        ep = (char *)( p->shmem_vaddr[i] + p->shmem_pages[i]*PGSIZE );
+if(debug) cprintf("find the bound\n");
+        goto found;
+      }
+    }
+    addr -= PGSIZE;
+  }
+found:
+  for(s = *pp; s < ep; s++)
+    if(*s == 0)
+      return s - *pp;
+if(debug) cprintf("return at syscall 73\n");
+  return -1;
+
 }
 
 // Fetch the nth 32-bit system call argument.
@@ -72,8 +106,10 @@ int
 argstr(int n, char **pp)
 {
   int addr;
-  if(argint(n, &addr) < 0)
+  if(argint(n, &addr) < 0) {
+cprintf("return at syscall 76\n");
     return -1;
+  }
   return fetchstr(proc, addr, pp);
 }
 

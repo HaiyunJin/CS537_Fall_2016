@@ -6,6 +6,9 @@
 #include "proc.h"
 #include "sysfunc.h"
 
+extern int debug; // haiyun
+
+
 int
 sys_fork(void)
 {
@@ -99,6 +102,8 @@ sys_shmgetat(void)  // haiyun
   
   if(argint(0, &key) < 0 || argint(1, &num_pages) < 0 || key < 0 )
     return -1;
+if(debug) cprintf("sys_shemgetat call shmgetat(%d, %d)\n",key, num_pages);
+// if(debug) cprintf("test if I can access proc, %x\n", proc->sz);
   return (int) shmgetat(key, num_pages);
 }
 // int shm_refcount(int key);               // haiyun

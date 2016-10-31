@@ -80,6 +80,16 @@ exec(char *path, char **argv)
       last = s+1;
   safestrcpy(proc->name, last, sizeof(proc->name));
 
+  // haiyun
+  // zero out the shared va
+  proc->shmtop = USERTOP;
+  for ( i = 0 ;  i < SHMEM_REGIONS; ++i ) {
+    if ( proc->shmem_vaddr[i] != 0 ) 
+      shm_decrease_count(i);
+    proc->shmem_vaddr[i] = 0;
+    proc->shmem_pages[i] = 0;
+  }
+
   // Commit to the user image.
   oldpgdir = proc->pgdir;
   proc->pgdir = pgdir;

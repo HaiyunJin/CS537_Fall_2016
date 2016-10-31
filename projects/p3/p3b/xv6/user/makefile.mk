@@ -13,10 +13,13 @@ USER_PROGS := \
 	rm\
 	sh\
 	stressfs\
-	shmgetattest\
 	tester\
 	usertests\
 	wc\
+	shmgetattest\
+	shmgetattest_set\
+	shmgetattest_read\
+	shmgetat_syscall_args\
 	zombie
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))

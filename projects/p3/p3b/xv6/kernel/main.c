@@ -64,6 +64,7 @@ mainc(void)
   userinit();      // first user process
   shmeminit();   // haiyun
   scheduler();     // start running processes
+  
 }
 
 // common cpu init code

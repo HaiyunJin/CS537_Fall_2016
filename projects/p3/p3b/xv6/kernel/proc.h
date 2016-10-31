@@ -10,6 +10,11 @@
 #define SEG_TSS   6  // this process's task state
 #define NSEGS     7
 
+
+// haiyun vm.c
+#define SHMEM_REGIONS 8 // should be 8 in assignment
+#define SHMEM_MAX_PAGES 4
+
 // Per-CPU state
 struct cpu {
   uchar id;                    // Local APIC ID; index into cpus[] below
@@ -74,6 +79,10 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  uint shmem_vaddr[SHMEM_REGIONS];     // shared addr
+  int shmem_pages[SHMEM_REGIONS];    // number of pages in this region 
+  int shmtop;           // total allocated shm pages in this proc
+      // no need for the shm_pages? same for all?
 };
 
 // Process memory is laid out contiguously, low addresses first:

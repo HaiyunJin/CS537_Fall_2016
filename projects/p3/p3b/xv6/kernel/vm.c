@@ -7,9 +7,16 @@
 #include "elf.h"
 
 
-
-int debug = 1;
-
+int debug = 1;  // haiyun 
+// haiyun add the following
+// #define SHMEM_REGIONS 8 // should be 8 in assignment
+// #define SHMEM_MAX_PAGES 4   // defined in kernel/proc.h
+int shmem_count[SHMEM_REGIONS]; // number of procs attached to the key
+int shmem_pages[SHMEM_REGIONS]; // number of pages associated with key
+void *shmem_paddr[SHMEM_REGIONS*SHMEM_MAX_PAGES]; 
+                                // physical address of the pages
+// void *shmem_vaddr[SHMEM_REGIONS]; // virtual address of the pages
+// int allocated_pages;     // total allocated pages
 
 extern char data[];  // defined in data.S
 
@@ -236,8 +243,11 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   char *mem;
   uint a;
 
-  if(newsz > USERTOP)
-    return 0;
+//   if(newsz > USERTOP)
+//     return 0;
+  if ( newsz > proc->shmtop )
+     return 0;
+
   if(newsz < oldsz)
     return oldsz;
 
@@ -291,7 +301,12 @@ freevm(pde_t *pgdir)
 
   if(pgdir == 0)
     panic("freevm: no pgdir");
-  deallocuvm(pgdir, USERTOP, 0);
+//   deallocuvm(pgdir, USERTOP, 0);
+// 1st try
+//   deallocuvm(pgdir, USERTOPallocated_pages*PGSIZE, 0); 
+                        // usertop -> usertop - allocated_pages*PGSIZE
+// 2nd try 
+  deallocuvm(pgdir, proc->sz, 0); // usertop -> usertop - allocated_pages*PGSIZE
   for(i = 0; i < NPDENTRIES; i++){
     if(pgdir[i] & PTE_P)
       kfree((char*)PTE_ADDR(pgdir[i]));
@@ -323,6 +338,18 @@ copyuvm(pde_t *pgdir, uint sz)
     if(mappages(d, (void*)i, PGSIZE, PADDR(mem), PTE_W|PTE_U) < 0)
       goto bad;
   }
+
+  // shm part // haiyun
+  for(i = proc->shmtop; i < USERTOP ; i += PGSIZE ) {
+    if((pte = walkpgdir(pgdir, (void*)i, 0)) == 0)
+      panic("copyuvm: pte should exist");
+    if(!(*pte & PTE_P))
+      panic("copyuvm: page not present");
+    pa = PTE_ADDR(*pte);
+    if(mappages(d, (void*)i, PGSIZE, PADDR(pa), PTE_W|PTE_U) < 0)
+      goto bad;
+  }
+
   return d;
 
 bad:
@@ -370,23 +397,21 @@ copyout(pde_t *pgdir, uint va, void *p, uint len)
   return 0;
 }
 
-
-// haiyun add the following
-#define SHMEM_PAGES 4 // should be 8
-#define SHMEM_MAX_PAGES 4
-int shmem_count[SHMEM_PAGES];
-void *shmem_addr[SHMEM_PAGES];
-
 void // haiyun
 shmeminit(void) {
   cprintf("shmem init\n");
   // init shmem struct
   int i;
-  for ( i = 0 ; i < SHMEM_PAGES ; ++i ) {
-    shmem_count[i] = 0;
-    if ( (shmem_addr[i] = kalloc() ) == 0 )
-      panic("shmemint failed");
-    cprintf("%x\n", ( unsigned int)shmem_addr[i]); 
+//   int j;
+  for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
+    shmem_count[i] = 0;  // init count
+    shmem_pages[i] = 0;  // init pages
+//     for ( j = 0 ; j < SHMEM_MAX_PAGES ; ++j ) {
+//       shmem_paddr[i*SHMEM_MAX_PAGES+j] = 0;  // init paddr array
+//     }
+//     if ( (shmem_paddr[i] = kalloc() ) == 0 )
+//       panic("shmemint failed");
+//     cprintf("%x\n", ( unsigned int)shmem_paddr[i]); 
   }
 }
 
@@ -395,38 +420,103 @@ shmeminit(void) {
 
 // easy one done
 int shm_refcount(int key) {
-  if ( key >= SHMEM_PAGES )  // invaild key
+  if ( key >= SHMEM_REGIONS )  // invaild key
     return -1;
   return shmem_count[key];
 }
 
-// hard one:
-void *shmgetat(int key, int num_pages){
-  if ( key >= SHMEM_PAGES )
-    return (void *)-1; // invaild key or num_pages
-  // main code start here
-  // if old page, return the existing addr
-  if(shmem_count[key] != 0 )
-    return (void *) shmem_addr[key];
-
-  // otherwise new page, need to allocate
-  if ( num_pages < 0 || num_pages >= SHMEM_MAX_PAGES )
-    return (void *)-1; // invalid page number
-
-  int i;
-  for ( i = 0 ; i < num_pages ; ++i ) {
-    if ( (shmem_addr[key] = kalloc() ) == 0 ) {
-      cprintf("Alocate page failed\n");
-      return (void *)-1; // page alloc failed
+// helper: change count
+int shm_decrease_count(int key) {
+  if ( key >= SHMEM_REGIONS )  // invaild key
+    return -1;
+   shmem_count[key]--;
+   if ( shmem_count[key] == 0 ) {
+if(debug) cprintf("count = 0, clean up\n");
+    int i;
+    for ( i = 0 ; i < shmem_pages[key] ; ++ i ) {  
+if(debug) cprintf("Free pa %x\n", shmem_paddr[key*SHMEM_MAX_PAGES+i]);
+      kfree((char*) shmem_paddr[key*SHMEM_MAX_PAGES+i]);
+      shmem_paddr[key*SHMEM_MAX_PAGES+i] = 0;
     }
   }
-  shmem_count[key]++;
-if(debug)  cprintf("Page allocated %x\n", ( unsigned int)shmem_addr[key]);
-//   sz
-//   mappages(pgdir, (char*)a, PGSIZE, PADDR(mem), PTE_W|PTE_U);
-//   memset(mem, 0, PGSIZE);
+  return 1;
+}
 
-  return shmem_addr[key];
+// helper: change count
+int shm_increase_count(int key) {
+  if ( key >= SHMEM_REGIONS )  // invaild key
+    return -1;
+  shmem_count[key]++;
+  return 1;
+}
+
+// hard one:
+void *shmgetat(int key, int num_pages){
+  if ( key >= SHMEM_REGIONS ) {
+if(debug) cprintf("invalid key\n");
+    return (void *)-1; // invaild key or num_pages
+  }
+
+  // same proc call twice, return va without remap va to pa
+  if ( proc->shmem_vaddr[key] ) 
+    return (void *) (proc->shmem_vaddr[key]);
+
+  // main code start here
+  // if old page, map to old pa's
+  int new_allocate = 0;
+  if(shmem_count[key] == 0 ) {
+if(debug) cprintf("New allocated pages\n");
+if(debug) cprintf("Attach to existing page at %d, %x, %d pages\n",
+            key, (int)(proc->shmem_vaddr[key]), shmem_pages[key]);
+    new_allocate = 1;
+  }
+
+  if ( new_allocate ) {
+    if ( ! (num_pages > 0 && num_pages <= SHMEM_MAX_PAGES) ) {
+if(debug) cprintf("invalid number of pages [1,4]\n");
+      return (void *)-1; // invalid page number
+    }
+  }
+
+  uint sz = proc->sz;
+  pde_t * pgdir = proc->pgdir;
+  uint vaddr;
+  vaddr = proc->shmtop;
+
+  /* 
+   *  Allocate from USERTOP (640K), allocate from the bottom
+   */
+  // check with sz
+  if ( (vaddr - num_pages*PGSIZE) < sz ) {
+if(debug) cprintf("virtual address space full\n");
+    return (void *) -1;
+  }
+  
+if(debug) cprintf("test if I can access proc in vm, 0x%x\n", proc->sz);
+  int i;
+  for ( i = 0 ; i < num_pages ; ++i ) {
+    if ( new_allocate ) {
+      if ( (shmem_paddr[key*SHMEM_MAX_PAGES+i] = kalloc() ) == 0 ) {
+        panic("shmem kalloc failed");
+        cprintf("Alocate page failed\n");
+        return (void *)(-1);  // page alloc failed
+      }
+      memset(shmem_paddr[key*SHMEM_MAX_PAGES+i], 0, PGSIZE);
+    }
+    vaddr -= PGSIZE;  // shift the vaddr up a page
+    mappages(pgdir, (char *)vaddr, PGSIZE, \
+        PADDR(shmem_paddr[key*SHMEM_MAX_PAGES+i]), PTE_W|PTE_U);
+if(debug) cprintf("Mapping va %x to pa %x\n",(uint)vaddr,
+                   shmem_paddr[key*SHMEM_MAX_PAGES+i]);
+  }
+  proc->shmtop -= num_pages*PGSIZE;
+  shmem_count[key]++;
+  shmem_pages[key] = num_pages;
+  proc->shmem_vaddr[key] = vaddr;
+if(debug)  cprintf("Final Page allocated pa %x, %d pages\n", \
+    ( unsigned int)shmem_paddr[key*SHMEM_MAX_PAGES+i-1], num_pages);
+
+  return (void *) proc->shmem_vaddr[key];
 }
 
 // kfree()
@@ -437,3 +527,6 @@ if(debug)  cprintf("Page allocated %x\n", ( unsigned int)shmem_addr[key]);
 // fork() -> shared page
 // exec() -> also interesting case
 // heap grows, may destroy the world
+// walkpgdir() used to return the pa coresponding to the va
+// need to make sure the shared pages shifht back to the begining of the end 
+//  after the number of procs attached to some key is zero

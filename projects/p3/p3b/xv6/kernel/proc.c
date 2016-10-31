@@ -68,6 +68,14 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
 
+  // set up shm struct  // haiyun
+  int i;
+  for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
+    p->shmem_vaddr[i] = 0;
+    p->shmem_pages[i] = 0;
+  }
+  p-> shmtop= USERTOP;
+
   return p;
 }
 
@@ -134,8 +142,18 @@ fork(void)
   if((np = allocproc()) == 0)
     return -1;
 
+  // copy shm info from p
+  for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
+    if ( ( np->shmem_vaddr[i] = proc->shmem_vaddr[i]) != 0 ) {
+      shm_increase_count(i);
+    }
+    np->shmem_pages[i] = proc->shmem_pages[i];
+  }
+  np->shmtop = proc->shmtop;
+
   // Copy process state from p.
-  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
+  if((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){ 
+    // haiyun modify copyuvm, copy not only up to sz
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
@@ -144,6 +162,7 @@ fork(void)
   np->sz = proc->sz;
   np->parent = proc;
   *np->tf = *proc->tf;
+  
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
@@ -210,6 +229,8 @@ wait(void)
   struct proc *p;
   int havekids, pid;
 
+  int i;  // haiyun
+
   acquire(&ptable.lock);
   for(;;){
     // Scan through table looking for zombie children.
@@ -229,6 +250,13 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
+
+        // decrease shared memory count  // haiyun
+        for ( i = 0 ; i < SHMEM_REGIONS ; ++i) {
+          if ( p->shmem_vaddr[i] != 0 )
+            shm_decrease_count(i);
+        }
+        
         release(&ptable.lock);
         return pid;
       }
