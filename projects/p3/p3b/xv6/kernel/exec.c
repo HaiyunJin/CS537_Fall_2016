@@ -87,7 +87,7 @@ exec(char *path, char **argv)
     if ( proc->shmem_vaddr[i] != 0 ) 
       shm_decrease_count(i);
     proc->shmem_vaddr[i] = 0;
-    proc->shmem_pages[i] = 0;
+//    proc->shmem_pages[i] = 0;
   }
 
   // Commit to the user image.

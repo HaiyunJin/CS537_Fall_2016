@@ -9,8 +9,11 @@ build xv6 using make
 Trying to build project using make
 make
 gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 \
+		-M -MG kernel/vm.c -MF kernel/vm.d -MT kernel/vm.d -MT kernel/vm.o
+gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 \
 		-M -MG kernel/syscall.c -MF kernel/syscall.d -MT kernel/syscall.d -MT kernel/syscall.o
 gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 -c -o kernel/syscall.o kernel/syscall.c
+gcc  -I include -nostdinc -Wall -Werror -ggdb -fno-pic -fno-builtin -fno-strict-aliasing -fno-stack-protector -m32 -c -o kernel/vm.o kernel/vm.c
 ld  -m    elf_i386 -nostdlib --omagic \
 		--section-start=.text=0x100000 --entry=main --output=kernel/kernel \
 		kernel/multiboot.o kernel/data.o kernel/bio.o kernel/console.o kernel/exec.o kernel/file.o kernel/fs.o kernel/ide.o kernel/ioapic.o kernel/kalloc.o kernel/kbd.o kernel/lapic.o kernel/main.o kernel/mp.o kernel/picirq.o kernel/pipe.o kernel/proc.o kernel/spinlock.o kernel/string.o kernel/swtch.o kernel/syscall.o kernel/sysfile.o kernel/sysproc.o kernel/timer.o kernel/trapasm.o kernel/trap.o kernel/uart.o kernel/vectors.o kernel/vm.o \
@@ -18,15 +21,15 @@ ld  -m    elf_i386 -nostdlib --omagic \
 dd if=/dev/zero of=xv6.img count=10000
 10000+0 records in
 10000+0 records out
-5120000 bytes (5.1 MB) copied, 0.0149747 s, 342 MB/s
+5120000 bytes (5.1 MB) copied, 0.0237281 s, 216 MB/s
 dd if=kernel/bootblock of=xv6.img conv=notrunc
 1+0 records in
 1+0 records out
-512 bytes (512 B) copied, 0.000126747 s, 4.0 MB/s
+512 bytes (512 B) copied, 9.6744e-05 s, 5.3 MB/s
 dd if=kernel/kernel of=xv6.img seek=1 conv=notrunc
 251+1 records in
 251+1 records out
-128729 bytes (129 kB) copied, 0.000346908 s, 371 MB/s
+128528 bytes (129 kB) copied, 0.000332944 s, 386 MB/s
 
 
 test build PASSED
@@ -84,26 +87,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(8, 1)
-invalid key
-sys_shemgetat call shmgetat(100, 1)
-invalid key
-sys_shemgetat call shmgetat(0, 0)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-invalid number of pages [1,4]
-sys_shemgetat call shmgetat(1, -100)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-invalid number of pages [1,4]
-sys_shemgetat call shmgetat(2, 5)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-invalid number of pages [1,4]
-sys_shemgetat call shmgetat(3, 100)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-invalid number of pages [1,4]
 TEST PASSED
 
 
@@ -162,30 +145,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
 TEST PASSED
 
 
@@ -244,36 +203,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(3, 4)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Mapping va 9d000 to pa fe5000
-Mapping va 9c000 to pa fe6000
-Mapping va 9b000 to pa fe7000
-Final Page allocated pa fe7000, 4 pages
-sys_shemgetat call shmgetat(0, 2)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9a000 to pa fe8000
-Mapping va 99000 to pa fe9000
-Final Page allocated pa fe9000, 2 pages
-sys_shemgetat call shmgetat(1, 3)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 98000 to pa fea000
-Mapping va 97000 to pa feb000
-Mapping va 96000 to pa fec000
-Final Page allocated pa fec000, 3 pages
 TEST PASSED
 
 
@@ -332,15 +261,8 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(4, 1)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(4, 2)
 TEST PASSED
-
+$ 
 
 test shmgetat_double_call PASSED (10 of 10)
  (shmgetat called twice with same key, making sure same physical page is not mapped into 2 different places in virtual address space)
@@ -397,25 +319,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(3, 3)
-sys_shemgetat call shmgetat(4, 3)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fa6000
-Mapping va 9d000 to pa fa5000
-Mapping va 9c000 to pa fa4000
-Final Page allocated pa fa4000, 3 pages
-count = 0, clean up
-Free pa fa6000
-Free pa fa5000
-Free pa fa4000
 TEST PASSED
 
 
@@ -474,30 +377,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
 TEST PASSED
 
 
@@ -556,12 +435,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
 TEST PASSED
 
 
@@ -620,10 +493,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-virtual address space full
 TEST PASSED
 
 
@@ -682,12 +551,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
 TEST PASSED
 
 
@@ -752,30 +615,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
 in helper
 pid 4 echo: trap 14 err 6 on cpu 0 eip 0x67 addr 0x9f000--kill proc
 TEST PASSED
@@ -842,46 +681,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
-sys_shemgetat call shmgetat(2, 1)
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(0, 1)
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
 TEST PASSED
 
 
@@ -940,21 +739,11 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-find the bound
-return at syscall 73
-open system call failed to take a string from within a shared page
-TEST FAILED
+TEST PASSED
 
 
-test shmgetat_syscall_args FAILED (0 of 10)
+test shmgetat_syscall_args PASSED (10 of 10)
  (making sure pointers from shared pages can be successfully passed to system calls. ***NOTE*** only open and write system calls are tested here; when grading, we may change the test to any other system call that may take pointers.)
- tester failed
 
 starting shm_refcount_invalid_input
 
@@ -1124,70 +913,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fa7000
-Final Page allocated pa fa7000, 1 pages
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fa6000
-Final Page allocated pa fa6000, 1 pages
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fa5000
-Final Page allocated pa fa5000, 1 pages
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fa4000
-Final Page allocated pa fa4000, 1 pages
-sys_shemgetat call shmgetat(4, 1)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9b000 to pa fa3000
-Final Page allocated pa fa3000, 1 pages
-sys_shemgetat call shmgetat(5, 1)
-New allocated pages
-Attach to existing page at 5, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9a000 to pa fa2000
-Final Page allocated pa fa2000, 1 pages
-sys_shemgetat call shmgetat(6, 1)
-New allocated pages
-Attach to existing page at 6, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 99000 to pa fa1000
-Final Page allocated pa fa1000, 1 pages
-sys_shemgetat call shmgetat(7, 1)
-New allocated pages
-Attach to existing page at 7, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 98000 to pa fa0000
-Final Page allocated pa fa0000, 1 pages
-count = 0, clean up
-Free pa fa7000
-count = 0, clean up
-Free pa fa6000
-count = 0, clean up
-Free pa fa5000
-count = 0, clean up
-Free pa fa4000
-count = 0, clean up
-Free pa fa3000
-count = 0, clean up
-Free pa fa2000
-count = 0, clean up
-Free pa fa1000
-count = 0, clean up
-Free pa fa0000
 TEST PASSED
 
 
@@ -1246,63 +971,8 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 2)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 2 pages
-sys_shemgetat call shmgetat(1, 2)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 2 pages
-sys_shemgetat call shmgetat(2, 2)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9b000 to pa fe7000
-Mapping va 9a000 to pa fe8000
-Final Page allocated pa fe8000, 2 pages
-sys_shemgetat call shmgetat(3, 2)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 99000 to pa fe9000
-Mapping va 98000 to pa fea000
-Final Page allocated pa fea000, 2 pages
-sys_shemgetat call shmgetat(4, 2)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 97000 to pa feb000
-Mapping va 96000 to pa fec000
-Final Page allocated pa fec000, 2 pages
-sys_shemgetat call shmgetat(5, 2)
-New allocated pages
-Attach to existing page at 5, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 95000 to pa fed000
-Mapping va 94000 to pa fee000
-Final Page allocated pa fee000, 2 pages
-sys_shemgetat call shmgetat(6, 2)
-New allocated pages
-Attach to existing page at 6, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 93000 to pa fef000
-Mapping va 92000 to pa fc1000
-Final Page allocated pa fc1000, 2 pages
-sys_shemgetat call shmgetat(7, 2)
-New allocated pages
-Attach to existing page at 7, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 91000 to pa fd3000
-Mapping va 90000 to pa fa8000
-Final Page allocated pa fa8000, 2 pages
 TEST PASSED
+
 
 test shm_refcount_one PASSED (10 of 10)
  (shm_refcount should return 1 after 1 access.)
@@ -1359,64 +1029,7 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 1)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Final Page allocated pa fe3000, 1 pages
-sys_shemgetat call shmgetat(0, 4)
-sys_shemgetat call shmgetat(1, 1)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9e000 to pa fd2000
-Final Page allocated pa fd2000, 1 pages
-sys_shemgetat call shmgetat(1, 4)
-sys_shemgetat call shmgetat(2, 1)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 1 pages
-sys_shemgetat call shmgetat(2, 4)
-sys_shemgetat call shmgetat(3, 1)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 1 pages
-sys_shemgetat call shmgetat(3, 4)
-sys_shemgetat call shmgetat(4, 1)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9b000 to pa fe7000
-Final Page allocated pa fe7000, 1 pages
-sys_shemgetat call shmgetat(4, 4)
-sys_shemgetat call shmgetat(5, 1)
-New allocated pages
-Attach to existing page at 5, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9a000 to pa fe8000
-Final Page allocated pa fe8000, 1 pages
-sys_shemgetat call shmgetat(5, 4)
-sys_shemgetat call shmgetat(6, 1)
-New allocated pages
-Attach to existing page at 6, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 99000 to pa fe9000
-Final Page allocated pa fe9000, 1 pages
-sys_shemgetat call shmgetat(6, 4)
-sys_shemgetat call shmgetat(7, 1)
-New allocated pages
-Attach to existing page at 7, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 98000 to pa fea000
-Final Page allocated pa fea000, 1 pages
-sys_shemgetat call shmgetat(7, 4)
 TEST PASSED
-
 
 test shm_refcount_one2 PASSED (10 of 10)
  (shm_refcount should return 1 after 2 accesses to the same page.)
@@ -1473,70 +1086,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 3)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Mapping va 9e000 to pa fd2000
-Mapping va 9d000 to pa fe5000
-Final Page allocated pa fe5000, 3 pages
-sys_shemgetat call shmgetat(1, 3)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9c000 to pa fe6000
-Mapping va 9b000 to pa fe7000
-Mapping va 9a000 to pa fe8000
-Final Page allocated pa fe8000, 3 pages
-sys_shemgetat call shmgetat(2, 3)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 99000 to pa fe9000
-Mapping va 98000 to pa fea000
-Mapping va 97000 to pa feb000
-Final Page allocated pa feb000, 3 pages
-sys_shemgetat call shmgetat(3, 3)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 96000 to pa fec000
-Mapping va 95000 to pa fed000
-Mapping va 94000 to pa fee000
-Final Page allocated pa fee000, 3 pages
-sys_shemgetat call shmgetat(4, 3)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 93000 to pa fef000
-Mapping va 92000 to pa fc1000
-Mapping va 91000 to pa fd3000
-Final Page allocated pa fd3000, 3 pages
-sys_shemgetat call shmgetat(5, 3)
-New allocated pages
-Attach to existing page at 5, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 90000 to pa fa8000
-Mapping va 8f000 to pa fa7000
-Mapping va 8e000 to pa fa6000
-Final Page allocated pa fa6000, 3 pages
-sys_shemgetat call shmgetat(6, 3)
-New allocated pages
-Attach to existing page at 6, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 8d000 to pa fa5000
-Mapping va 8c000 to pa fa4000
-Mapping va 8b000 to pa fa3000
-Final Page allocated pa fa3000, 3 pages
-sys_shemgetat call shmgetat(7, 3)
-New allocated pages
-Attach to existing page at 7, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 8a000 to pa fa2000
-Mapping va 89000 to pa fa1000
-Mapping va 88000 to pa fa0000
-Final Page allocated pa fa0000, 3 pages
 TEST PASSED
 
 
@@ -1601,78 +1150,6 @@ shmem init
 init: starting sh
 $ tester
 tester
-sys_shemgetat call shmgetat(0, 4)
-New allocated pages
-Attach to existing page at 0, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9f000 to pa fe3000
-Mapping va 9e000 to pa fd2000
-Mapping va 9d000 to pa fe5000
-Mapping va 9c000 to pa fe6000
-Final Page allocated pa fe6000, 4 pages
-sys_shemgetat call shmgetat(1, 4)
-New allocated pages
-Attach to existing page at 1, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 9b000 to pa fe7000
-Mapping va 9a000 to pa fe8000
-Mapping va 99000 to pa fe9000
-Mapping va 98000 to pa fea000
-Final Page allocated pa fea000, 4 pages
-sys_shemgetat call shmgetat(2, 4)
-New allocated pages
-Attach to existing page at 2, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 97000 to pa feb000
-Mapping va 96000 to pa fec000
-Mapping va 95000 to pa fed000
-Mapping va 94000 to pa fee000
-Final Page allocated pa fee000, 4 pages
-sys_shemgetat call shmgetat(3, 4)
-New allocated pages
-Attach to existing page at 3, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 93000 to pa fef000
-Mapping va 92000 to pa fc1000
-Mapping va 91000 to pa fd3000
-Mapping va 90000 to pa fa8000
-Final Page allocated pa fa8000, 4 pages
-sys_shemgetat call shmgetat(4, 4)
-New allocated pages
-Attach to existing page at 4, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 8f000 to pa fa7000
-Mapping va 8e000 to pa fa6000
-Mapping va 8d000 to pa fa5000
-Mapping va 8c000 to pa fa4000
-Final Page allocated pa fa4000, 4 pages
-sys_shemgetat call shmgetat(5, 4)
-New allocated pages
-Attach to existing page at 5, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 8b000 to pa fa3000
-Mapping va 8a000 to pa fa2000
-Mapping va 89000 to pa fa1000
-Mapping va 88000 to pa fa0000
-Final Page allocated pa fa0000, 4 pages
-sys_shemgetat call shmgetat(6, 4)
-New allocated pages
-Attach to existing page at 6, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 87000 to pa f9f000
-Mapping va 86000 to pa f9e000
-Mapping va 85000 to pa f9d000
-Mapping va 84000 to pa f9c000
-Final Page allocated pa f9c000, 4 pages
-sys_shemgetat call shmgetat(7, 4)
-New allocated pages
-Attach to existing page at 7, 0, 0 pages
-test if I can access proc in vm, 0x2000
-Mapping va 83000 to pa f9b000
-Mapping va 82000 to pa f9a000
-Mapping va 81000 to pa f99000
-Mapping va 80000 to pa f98000
-Final Page allocated pa f98000, 4 pages
 n = 1
 n = 1
 n = 1
@@ -1725,9 +1202,8 @@ test shmgetat_exec PASSED (10 of 10)
 test shmgetat_exec2 PASSED (10 of 10)
  (a new exec-ed program should reallocate virtual pages if shmgetat is called.)
 
-test shmgetat_syscall_args FAILED (0 of 10)
+test shmgetat_syscall_args PASSED (10 of 10)
  (making sure pointers from shared pages can be successfully passed to system calls. ***NOTE*** only open and write system calls are tested here; when grading, we may change the test to any other system call that may take pointers.)
- tester failed
 
 test shm_refcount_invalid_input PASSED (10 of 10)
  (shm_refcount invalid input test)
@@ -1750,6 +1226,6 @@ test shm_refcount_fork PASSED (10 of 10)
 test shm_refcount_exec PASSED (10 of 10)
  (Exec should decrement count for shared pages. Parent accesses a shared page, then it forks. Child performs exec to start a new program. In the new program, the count for the shared page should be 1.)
 
-Passed 19 of 20 tests.
-Overall 19 of 20
-Points 180 of 190
+Passed 20 of 20 tests.
+Overall 20 of 20
+Points 190 of 190

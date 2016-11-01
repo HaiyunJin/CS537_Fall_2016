@@ -15,11 +15,33 @@ extern int debug; // haiyun
 // library system call function. The saved user %esp points
 // to a saved program counter, and then the first argument.
 
+
+uint   // haiyun helper function
+get_shm_bound(struct proc *proc, int addr) {
+  int aligned_addr = (int) PGROUNDDOWN(addr);
+  int key;
+  for(;;) {  
+    for ( key = 0 ; key < SHMEM_REGIONS ; ++key ) {
+      if ( aligned_addr == proc->shmem_vaddr[key] )
+        return ( proc->shmem_vaddr[key] + shm_region_pages(key)*PGSIZE );
+    }
+    aligned_addr -= PGSIZE;
+  }
+}
+
 // Fetch the int at addr from process p.
 int
 fetchint(struct proc *p, uint addr, int *ip)
 {
-  if(addr >= p->sz || addr+4 > p->sz)
+  uint bound;
+  if ( addr < p->shmtop ) {
+    bound = p->sz;
+  } else {
+    bound = get_shm_bound(p, addr);
+  }
+
+//   if(addr >= p->sz || addr+4 > p->sz)
+  if(addr >= bound || addr+4 > bound)  // modify by haiyun
     return -1;
   *ip = *(int*)(addr);
   return 0;
@@ -33,46 +55,21 @@ fetchstr(struct proc *p, uint addr, char **pp)
 {
   char *s, *ep;
 
-  if(addr >= p->sz ) { 
-    // haiyun: 2 cases,
-    if ( addr < p->shmtop ) {
-      // 1. normal va, exceed sz
-      return -1;
-    } 
-    // 2. accessing shm
-    goto shmcode;
+  uint bound;
+  if ( addr < p->shmtop ) {
+    bound = p->sz;
+  } else {
+    bound = get_shm_bound(p, addr);
   }
+
+  if(addr >= bound)
+    return -1;
   *pp = (char*)addr;
-  ep = (char*)p->sz;
-//   for(s = *pp; s < ep; s++)
+  ep = (char*)bound;
   for(s = *pp; s < ep; s++)
     if(*s == 0)
       return s - *pp;
-if(debug) cprintf("return at syscall 51\n");
   return -1;
-
-shmcode:  // haiyun, special for shm access
-  *pp = (char*)addr;
-  addr = (uint) PGROUNDDOWN(addr);
-  int i;
-  // walk through to find the bound of this shm region
-  for(;;) {  
-    for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
-      if ( addr == p->shmem_vaddr[i] ) {
-        ep = (char *)( p->shmem_vaddr[i] + p->shmem_pages[i]*PGSIZE );
-if(debug) cprintf("find the bound\n");
-        goto found;
-      }
-    }
-    addr -= PGSIZE;
-  }
-found:
-  for(s = *pp; s < ep; s++)
-    if(*s == 0)
-      return s - *pp;
-if(debug) cprintf("return at syscall 73\n");
-  return -1;
-
 }
 
 // Fetch the nth 32-bit system call argument.
@@ -90,10 +87,24 @@ argptr(int n, char **pp, int size)
 {
   int i;
   
-  if(argint(n, &i) < 0)
+  if(argint(n, &i) < 0) {
+if(debug) cprintf("return at 99 in syscall\n");
     return -1;
-  if((uint)i >= proc->sz || (uint)i+size > proc->sz)
+  }
+//   if((uint)i+size > proc->sz || (uint)i >= proc->size)
+//     return -1;
+
+// haiyun add following ////////////
+  uint bound;
+  if ( (uint)i < proc->shmtop ) {
+    bound = proc->sz;
+  } else {  // check shm va bound
+    bound = get_shm_bound(proc, i);
+  }
+
+  if((uint)i >= bound || (uint)i+size > bound)
     return -1;
+
   *pp = (char*)i;
   return 0;
 }

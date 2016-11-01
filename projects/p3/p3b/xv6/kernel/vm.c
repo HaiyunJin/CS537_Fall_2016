@@ -7,7 +7,8 @@
 #include "elf.h"
 
 
-int debug = 1;  // haiyun 
+// haiyun 
+int debug = 0;
 // haiyun add the following
 // #define SHMEM_REGIONS 8 // should be 8 in assignment
 // #define SHMEM_MAX_PAGES 4   // defined in kernel/proc.h
@@ -449,6 +450,12 @@ int shm_increase_count(int key) {
   shmem_count[key]++;
   return 1;
 }
+
+// helper, return number of pages allocated for this region
+int shm_region_pages(int key) {
+  return shmem_pages[key];
+}
+
 
 // hard one:
 void *shmgetat(int key, int num_pages){

@@ -80,7 +80,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint shmem_vaddr[SHMEM_REGIONS];     // shared addr
-  int shmem_pages[SHMEM_REGIONS];    // number of pages in this region 
+//   int shmem_pages[SHMEM_REGIONS];    // number of pages in this region 
   int shmtop;           // total allocated shm pages in this proc
       // no need for the shm_pages? same for all?
 };

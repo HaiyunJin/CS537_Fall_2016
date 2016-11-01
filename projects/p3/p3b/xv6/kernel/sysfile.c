@@ -9,6 +9,8 @@
 #include "fcntl.h"
 #include "sysfunc.h"
 
+extern int debug; // haiyun
+
 // Fetch the nth word-sized system call argument as a file descriptor
 // and return both the descriptor and the corresponding struct file.
 static int
@@ -77,8 +79,22 @@ sys_write(void)
   int n;
   char *p;
 
-  if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0)
+//   if(argfd(0, 0, &f) < 0 || argint(2, &n) < 0 || argptr(1, &p, n) < 0) {
+// if(debug) cprintf("return at 83 in sysfile\n");
+//     return -1;
+//   }
+  if(argfd(0, 0, &f) < 0 ) {
+if(debug) cprintf("return at 87 in sysfile\n");
     return -1;
+  }
+  if(argint(2, &n) < 0 ) {
+if(debug) cprintf("return at 91 in sysfile\n");
+    return -1;
+  }
+  if( argptr(1, &p, n) < 0) {
+if(debug) cprintf("return at 95 in sysfile\n");
+    return -1;
+  }
   return filewrite(f, p, n);
 }
 

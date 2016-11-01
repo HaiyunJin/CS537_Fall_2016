@@ -72,7 +72,7 @@ found:
   int i;
   for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
     p->shmem_vaddr[i] = 0;
-    p->shmem_pages[i] = 0;
+//     p->shmem_pages[i] = 0;
   }
   p-> shmtop= USERTOP;
 
@@ -147,7 +147,7 @@ fork(void)
     if ( ( np->shmem_vaddr[i] = proc->shmem_vaddr[i]) != 0 ) {
       shm_increase_count(i);
     }
-    np->shmem_pages[i] = proc->shmem_pages[i];
+//    np->shmem_pages[i] = proc->shmem_pages[i];
   }
   np->shmtop = proc->shmtop;
 
