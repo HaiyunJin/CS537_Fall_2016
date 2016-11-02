@@ -16,8 +16,6 @@ int shmem_count[SHMEM_REGIONS]; // number of procs attached to the key
 int shmem_pages[SHMEM_REGIONS]; // number of pages associated with key
 void *shmem_paddr[SHMEM_REGIONS*SHMEM_MAX_PAGES]; 
                                 // physical address of the pages
-// void *shmem_vaddr[SHMEM_REGIONS]; // virtual address of the pages
-// int allocated_pages;     // total allocated pages
 
 extern char data[];  // defined in data.S
 
@@ -246,8 +244,8 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
 //   if(newsz > USERTOP)
 //     return 0;
-  if ( newsz > proc->shmtop )
-     return 0;
+  if ( newsz > proc->shmtop ) // haiyun
+     return 0;                // haiyun
 
   if(newsz < oldsz)
     return oldsz;
@@ -403,16 +401,9 @@ shmeminit(void) {
   cprintf("shmem init\n");
   // init shmem struct
   int i;
-//   int j;
   for ( i = 0 ; i < SHMEM_REGIONS ; ++i ) {
     shmem_count[i] = 0;  // init count
     shmem_pages[i] = 0;  // init pages
-//     for ( j = 0 ; j < SHMEM_MAX_PAGES ; ++j ) {
-//       shmem_paddr[i*SHMEM_MAX_PAGES+j] = 0;  // init paddr array
-//     }
-//     if ( (shmem_paddr[i] = kalloc() ) == 0 )
-//       panic("shmemint failed");
-//     cprintf("%x\n", ( unsigned int)shmem_paddr[i]); 
   }
 }
 
@@ -478,11 +469,13 @@ if(debug) cprintf("Attach to existing page at %d, %x, %d pages\n",
     new_allocate = 1;
   }
 
-  if ( new_allocate ) {
+  if ( new_allocate ) { // check num_pages validity if alloc new
     if ( ! (num_pages > 0 && num_pages <= SHMEM_MAX_PAGES) ) {
 if(debug) cprintf("invalid number of pages [1,4]\n");
       return (void *)-1; // invalid page number
     }
+  } else {  // if not new, the 2nd argv is irrelenvant
+    num_pages = shmem_pages[key];
   }
 
   uint sz = proc->sz;
@@ -498,14 +491,12 @@ if(debug) cprintf("invalid number of pages [1,4]\n");
 if(debug) cprintf("virtual address space full\n");
     return (void *) -1;
   }
-  
-if(debug) cprintf("test if I can access proc in vm, 0x%x\n", proc->sz);
+
   int i;
   for ( i = 0 ; i < num_pages ; ++i ) {
     if ( new_allocate ) {
       if ( (shmem_paddr[key*SHMEM_MAX_PAGES+i] = kalloc() ) == 0 ) {
         panic("shmem kalloc failed");
-        cprintf("Alocate page failed\n");
         return (void *)(-1);  // page alloc failed
       }
       memset(shmem_paddr[key*SHMEM_MAX_PAGES+i], 0, PGSIZE);
@@ -516,10 +507,10 @@ if(debug) cprintf("test if I can access proc in vm, 0x%x\n", proc->sz);
 if(debug) cprintf("Mapping va %x to pa %x\n",(uint)vaddr,
                    shmem_paddr[key*SHMEM_MAX_PAGES+i]);
   }
-  proc->shmtop -= num_pages*PGSIZE;
   shmem_count[key]++;
   shmem_pages[key] = num_pages;
   proc->shmem_vaddr[key] = vaddr;
+  proc->shmtop -= num_pages*PGSIZE;
 if(debug)  cprintf("Final Page allocated pa %x, %d pages\n", \
     ( unsigned int)shmem_paddr[key*SHMEM_MAX_PAGES+i-1], num_pages);
 

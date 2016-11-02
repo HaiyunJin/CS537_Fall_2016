@@ -18,15 +18,24 @@ extern int debug; // haiyun
 
 uint   // haiyun helper function
 get_shm_bound(struct proc *proc, int addr) {
-  int aligned_addr = (int) PGROUNDDOWN(addr);
+//   int aligned_addr = (int) PGROUNDDOWN(addr);
+//   int key;
+//   for(;;) {  
+//     for ( key = 0 ; key < SHMEM_REGIONS ; ++key ) {
+//       if ( aligned_addr == proc->shmem_vaddr[key] )
+//         return ( proc->shmem_vaddr[key] + shm_region_pages(key)*PGSIZE );
+//     }
+//     aligned_addr -= PGSIZE;
+//   } // ugly code
+
+  int bound = USERTOP;
   int key;
-  for(;;) {  
-    for ( key = 0 ; key < SHMEM_REGIONS ; ++key ) {
-      if ( aligned_addr == proc->shmem_vaddr[key] )
-        return ( proc->shmem_vaddr[key] + shm_region_pages(key)*PGSIZE );
-    }
-    aligned_addr -= PGSIZE;
+  for ( key = 0 ; key < SHMEM_REGIONS ; ++key ) {
+    if ( addr < proc->shmem_vaddr[key] && bound > proc->shmem_vaddr[key] )
+      bound = proc->shmem_vaddr[key];
   }
+  return bound;
+
 }
 
 // Fetch the int at addr from process p.
@@ -87,10 +96,9 @@ argptr(int n, char **pp, int size)
 {
   int i;
   
-  if(argint(n, &i) < 0) {
-if(debug) cprintf("return at 99 in syscall\n");
+  if(argint(n, &i) < 0)
     return -1;
-  }
+
 //   if((uint)i+size > proc->sz || (uint)i >= proc->size)
 //     return -1;
 
@@ -117,10 +125,9 @@ int
 argstr(int n, char **pp)
 {
   int addr;
-  if(argint(n, &addr) < 0) {
-cprintf("return at syscall 76\n");
+  if(argint(n, &addr) < 0)
     return -1;
-  }
+
   return fetchstr(proc, addr, pp);
 }
 
