@@ -1,4 +1,4 @@
-#define NUMBER_OF_BUFFERS 8 // need to change to 16 before submit
+#define NUMBER_OF_BUFFERS 16 // need to change to 16 before submit
 #define NAME_LENGTH 15
 #define NS_PER_SEC  1000000000L;
 

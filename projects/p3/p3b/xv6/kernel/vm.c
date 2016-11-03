@@ -442,10 +442,10 @@ int shm_increase_count(int key) {
   return 1;
 }
 
-// helper, return number of pages allocated for this region
-int shm_region_pages(int key) {
-  return shmem_pages[key];
-}
+// // helper, return number of pages allocated for this region
+// int shm_region_pages(int key) {
+//   return shmem_pages[key];
+// }
 
 
 // hard one:

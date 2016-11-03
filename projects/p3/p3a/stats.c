@@ -6,6 +6,8 @@
 #include "stats.h"
 #include "defs.h"
 
+#include <string.h>  // memset
+
 #include <fcntl.h>          /* For O_* constants */
 #include <sys/stat.h>       /* For mode constants */
 #include <semaphore.h>
@@ -22,7 +24,8 @@ if(debug) printf("Entering stats_init\n");
      * The data is followed at validbitaddr+1.
      */
     size_t pagesize = (size_t) getpagesize();
-    size_t buffersize = pagesize/NUMBER_OF_BUFFERS;
+//     size_t buffersize = pagesize/NUMBER_OF_BUFFERS;
+    size_t buffersize = sizeof(stats_t)+1;
     int id;
     if ( (id = shmget(key, pagesize, SHM_R|SHM_W)) == -1 ) {
         perror("shmget error: No memory created by server");
@@ -30,21 +33,21 @@ if(debug) printf("Entering stats_init\n");
     }
 if(debug) { printf("id %d\n", id); }
     char* pageaddr = (char*)shmat(id, NULL, 0);
-// if(debug) printf("");
     /* find free buffer */
     int buffno;
 
     /* find semaphore and acquire lock, set valid bit */
     int found = 0;
+    char * bufferhead;
     for (buffno = 0 ; buffno < NUMBER_OF_BUFFERS ; ++buffno) {
+        bufferhead = pageaddr + buffno*buffersize;
 if(debug) { printf("client use  mutex %ld, at %p\n", mutex->__align, mutex); }
         sem_wait(mutex);  // entering critical section
 if(debug) { printf("mutex wait call   %ld, at %p\n", mutex->__align, mutex); }
-        if ( *(pageaddr + buffno*buffersize) == '\0' ) {
+        if ( *bufferhead == '\0' ) {
 if(debug) printf("After find free buffer\n");
             /* set valid bit and content*/
-            validbitaddr = pageaddr + buffno*buffersize;
-            *validbitaddr = '0';  // any char works except '\0'
+            *bufferhead = '0';  // any char works except '\0'
 if(debug) { printf("After set validbitaddr\n"); }
             found = 1;
         }
@@ -56,8 +59,11 @@ if(debug) { printf("mutex post call   %ld, at %p\n", mutex->__align, mutex); }
         return NULL;
     }
 
+    validbitaddr = bufferhead;
     stats_t* buffaddr;
-    buffaddr = (stats_t*)(pageaddr + buffno*buffersize + 1);
+    buffaddr = (stats_t*)(validbitaddr + 1);
+
+    memset((void *)buffaddr, '\0', buffersize-1);
 
     return buffaddr;
 }
