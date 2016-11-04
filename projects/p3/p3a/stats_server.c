@@ -14,11 +14,13 @@
 #include <signal.h>         /* signal handling */
 
 int id;  // shared memory id: shmid
+sem_t *mutex;
 
 void exit_handler(int signo) {
     // 1. remove page
     shmctl(id, IPC_RMID, NULL);
     // 2. remove semaphore
+    sem_close(mutex);
     sem_unlink("sem_haiyun_zhewen");
 if(debug) { printf("Exit!!!!\n"); }
     exit(0);
@@ -33,10 +35,12 @@ int main(int argc, char *argv[] ) {
     /* Signal handling*/
     struct sigaction myexit;
     myexit.sa_handler = exit_handler;
+    sigemptyset(&myexit.sa_mask);
+    myexit.sa_flags = 0;
     sigaction(SIGINT, &myexit, NULL);
-    sigaction(SIGTERM, &myexit, NULL);
-    sigaction(SIGTSTP, &myexit, NULL);
-    sigaction(SIGKILL, &myexit, NULL);
+//     sigaction(SIGTERM, &myexit, NULL);
+//     sigaction(SIGTSTP, &myexit, NULL);
+//     sigaction(SIGKILL, &myexit, NULL);
 
     /* Argument parsing*/
     int opt;
@@ -58,13 +62,18 @@ if(debug) printf("key: %d\n", key);
 
     size_t pagesize = (size_t) getpagesize();
 if(debug > 1) { printf("pagesize: %d", (int)pagesize); }
-    size_t buffersize = pagesize/NUMBER_OF_BUFFERS;
-    id = shmget(key, pagesize, IPC_CREAT | SHM_R | SHM_W);
+//     size_t buffersize = pagesize/NUMBER_OF_BUFFERS;
+    size_t buffersize = sizeof(stats_t)+1;  // +1 for validbit
+if(debug) { printf("old buffersize %d\n", (int)pagesize/NUMBER_OF_BUFFERS); }
+if(debug) { printf("new buffersize %d\n", (int)buffersize); }
+    if ( (id = shmget(key, pagesize, IPC_CREAT|IPC_EXCL|SHM_R|SHM_W)) == -1 ) {
+        fprintf(stderr, "key %d already in use!\n", key);
+        exit(1);
+    }
     char* pageaddr = (char*)shmat(id, NULL, 0);
     memset((void *)pageaddr, '\0', pagesize);
 
     /* Create semaphore for clients */
-    sem_t *mutex;
     if ((mutex = sem_open("sem_haiyun_zhewen", O_CREAT, 0644, 1)) \
             == SEM_FAILED) {
         perror("sem_open");
@@ -73,11 +82,11 @@ if(debug > 1) { printf("pagesize: %d", (int)pagesize); }
 if(debug) printf("server start mutex %ld, at %p\n", mutex->__align, mutex);
 
     int counter = 0;
+    int buffno;
+    char* validbitaddr;
+    stats_t* buffaddr;
     while (1) {
         /* Check client code for comments */
-        int buffno;
-        char* validbitaddr;
-        stats_t* buffaddr;
         for (buffno = 0 ; buffno < NUMBER_OF_BUFFERS ; ++buffno) {
             validbitaddr = pageaddr + buffno*buffersize;
             buffaddr = (stats_t*)(validbitaddr + 1);

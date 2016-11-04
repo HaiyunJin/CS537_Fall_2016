@@ -34,6 +34,7 @@ void exit_handler(int signo) {
         exit(1);
     }  // else ok
 if(debug) { printf("\nEXITING!!!!\n"); }
+    sem_close(mutex);
     exit(0);
 }
 
@@ -47,15 +48,18 @@ int main(int argc, char *argv[] ) {
     /* Signal handling */
     struct sigaction myexit;
     myexit.sa_handler = exit_handler;
+    sigemptyset(&myexit.sa_mask);
+    myexit.sa_flags = 0;
+
     sigaction(SIGINT, &myexit, NULL);
-    sigaction(SIGTERM, &myexit, NULL);
-    sigaction(SIGKILL, &myexit, NULL);
-    sigaction(SIGTSTP, &myexit, NULL);
+//     sigaction(SIGTERM, &myexit, NULL);
+//     sigaction(SIGKILL, &myexit, NULL);
+//     sigaction(SIGTSTP, &myexit, NULL);
 
     /* Argument parsing*/
     int opt;
     key = 0;
-    int priority = 0, sleeptime_ns = 0, cputime_ns = 0;
+    int priority = -1, sleeptime_ns = 0, cputime_ns = 0;
     while ((opt = getopt(argc, argv, "k:p:s:c:")) != -1) {
         switch (opt) {
         case 'k':
@@ -66,6 +70,7 @@ int main(int argc, char *argv[] ) {
             break;
         case 's':
             sleeptime_ns = atoi(optarg);
+if(debug) { printf(" sleeptime_ns, %d", sleeptime_ns); }
             break;
         case 'c':
             cputime_ns = atoi(optarg);
@@ -74,15 +79,16 @@ int main(int argc, char *argv[] ) {
             usage();
         }
     }
+if(debug) printf("prio %d\n", priority);
     /* Check for missing params and set to default */
     if ( key == 0 ) {
 //         fprintf(stdout, "Use Default key: 12345\n");
         key = 12345;
     }
 if(debug) { printf("key: %d\n", key); }
-    if ( priority == 0 ) {
+    if ( priority < 0 ) {
 //         fprintf(stdout, "Use Default priority: 10\n");
-        priority = 10;
+        priority = 0;
     }
     if ( sleeptime_ns == 0 ) {
 //         fprintf(stdout, "Use Default sleeptime in ns: 1000\n");
@@ -128,9 +134,18 @@ if(debug) printf("procname: %s\n", buffaddr->procname);
     sleeptime.tv_sec = sleeptime_ns / NS_PER_SEC;
     sleeptime.tv_nsec = sleeptime_ns % NS_PER_SEC;
 
+    // initialized the cpu_secs to the current time
+    if ( clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &timeused) == -1 ) {
+        perror("clock get cpu time error");
+        exit(1);
+    }
+    buffaddr->cpu_secs = timeused.tv_sec \
+                             + (double)timeused.tv_nsec/NS_PER_SEC;
+
+
     while (1) {
         /* Compute for specified time */
-        if ( clock_gettime(CLOCK_REALTIME_COARSE, &starttime) == -1 ) {
+        if ( clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &starttime) == -1 ) {
             perror("Start Clock error");
             exit(1);
         }
@@ -143,7 +158,7 @@ if(debug) printf("starttime nsec: %ld\n", starttime.tv_nsec);
         while ( currtime.tv_sec < endtime.tv_sec
               || (currtime.tv_sec == endtime.tv_sec &&
                         currtime.tv_nsec < endtime.tv_nsec) ) {
-            if ( clock_gettime(CLOCK_REALTIME_COARSE, &currtime) == -1 ) {
+            if ( clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &currtime) == -1 ) {
                 perror("Get Clock error");
                 exit(1);
             }
@@ -166,10 +181,12 @@ if(debug > 2) { printf("currtime nsec: %ld\n", currtime.tv_nsec); }
          ++counter;
 
         /* write statics */
+        sem_wait(mutex);  // entering critical section
         buffaddr->counter = counter;
-        buffaddr->priority = priority;
+        buffaddr->priority = priority;  // getpro
         buffaddr->cpu_secs = timeused.tv_sec \
                              + (double)timeused.tv_nsec/NS_PER_SEC;
+        sem_post(mutex);  // end of critical section
 if(debug) { printf("cpu_secs: %.2f\n", buffaddr->cpu_secs); }
     }
 
