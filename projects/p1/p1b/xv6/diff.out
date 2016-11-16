@@ -1,0 +1,47 @@
+include/syscall.h
+25a26
+> #define SYS_getnumsyscallp 22 // haiyun
+
+kernel/proc.c
+45a46
+>   p->numsyscalls = 0 ; // initialize haiyun
+
+kernel/proc.h
+76a77
+>   int numsyscalls;              // Number of syscalls in this proc haiyun
+
+kernel/syscall.c
+105a106
+> [SYS_getnumsyscallp]  sys_getnumsyscallp, // haiyun
+116a118,123
+>     // should increase numsyscalls here   haiyun
+>     // check the callnum to exclude itself SYS_getnumsyscallp
+>     if ( num != SYS_getnumsyscallp ) { 
+>         // SYS_getnumsyscallp is the number of getnumsyscallp
+>         proc->numsyscalls++;
+>     }
+
+kernel/sysfunc.h
+25a26
+> int sys_getnumsyscallp(void); // haiyun
+
+kernel/sysproc.c
+90a91,97
+> 
+> // return how many syscalls has been called since haiyun
+> int
+> sys_getnumsyscallp(void)
+> {
+>   return proc->numsyscalls;
+> }
+
+user/user.h
+27a28
+> int getnumsyscallp(void); // haiyun
+
+user/usys.S
+31a32
+> SYSCALL(getnumsyscallp)
+
+user/syscallptest.c
+> all brand new
