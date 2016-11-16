@@ -1,0 +1,658 @@
+starting build
+
+**********************************************************************
+
+Test build
+build project using make
+
+**********************************************************************
+Trying to clean project using make clean
+make clean
+rm -f mysh 
+Trying to build project using make
+make
+gcc -o mysh -Wall -g mysh.c
+
+
+test build PASSED
+ (build project using make)
+
+starting linttest
+
+**********************************************************************
+
+Test linttest
+Lint test for C programming style
+
+**********************************************************************
+/u/c/s/cs537-1/ta/tests/2a/../../lint/cpplint.py --extensions c,h output.c
+Done processing output.c
+Total errors found: 0
+/u/c/s/cs537-1/ta/tests/2a/../../lint/cpplint.py --extensions c,h mysh.c
+mysh.c:176:  Should have a space between // and comment  [whitespace/comments] [4]
+mysh.c:177:  Should have a space between // and comment  [whitespace/comments] [4]
+Done processing mysh.c
+Total errors found: 2
+Failure: /u/c/s/cs537-1/ta/tests/2a/../../lint/cpplint.py returned incorrect status code. Expected 0 got 1
+
+
+test linttest FAILED (0 of 5)
+ (Lint test for C programming style)
+ /u/c/s/cs537-1/ta/tests/2a/../../lint/cpplint.py returned incorrect status code. Expected 0 got 1
+
+starting valgrindtest
+
+**********************************************************************
+
+Test valgrindtest
+Valgrind test for memory management
+
+**********************************************************************
+Running valgrind
+/usr/bin/valgrind --show-reachable=yes --xml=yes --child-silent-after-fork=yes --undef-value-errors=no --xml-file=/tmp/tmpYosQJb/p/vg_summary.xml ./mysh /u/c/s/cs537-1/ta/tests/2a/valgrind/in
+ls
+batch
+batch2
+batch3
+CPPLINT.cfg
+Makefile
+mysh
+mysh.c
+mysh.c_with_debug_lines
+output.c
+p2a.html
+runtests.log
+test
+Todolist
+vg_summary.xml
+echo 5
+5
+sleep 3&
+sleep: invalid time interval ‘3&’
+Try 'sleep --help' for more information.
+j
+myw 3
+0 : Job 3 terminated
+Valgrind completed in 0.368914842606 seconds
+
+
+test valgrindtest PASSED (10 of 10)
+ (Valgrind test for memory management)
+
+starting args
+
+**********************************************************************
+
+Test args
+too many arguments to mysh
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/args/in /bogus
+
+
+test args PASSED (2 of 2)
+ (too many arguments to mysh)
+
+starting args2
+
+**********************************************************************
+
+Test args2
+invalid batch file path
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /bogus
+
+
+test args2 PASSED (2 of 2)
+ (invalid batch file path)
+
+starting interactive
+
+**********************************************************************
+
+Test interactive
+simple command in interactive mode
+
+**********************************************************************
+Running mysh with 1 command: see /u/c/s/cs537-1/ta/tests/2a/interactive/in
+
+/tmp/tmpYosQJb/p/./mysh
+Failure: ./mysh returned incorrect status code. Expected 0 got 1
+
+
+test interactive FAILED (0 of 2)
+ (simple command in interactive mode)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+starting interactive2
+
+**********************************************************************
+
+Test interactive2
+multiple commands in interactive mode
+
+**********************************************************************
+Running mysh with multiple commands: see /u/c/s/cs537-1/ta/tests/2a/interactive2/in
+
+/tmp/tmpYosQJb/p/./mysh
+Failure: ./mysh returned incorrect status code. Expected 0 got 1
+
+
+test interactive2 FAILED (0 of 3)
+ (multiple commands in interactive mode)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+starting blank
+
+**********************************************************************
+
+Test blank
+an empty batch file
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/blank/in
+
+
+test blank PASSED (2 of 2)
+ (an empty batch file)
+
+starting basic
+
+**********************************************************************
+
+Test basic
+run a single command with no arguments
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/basic/in
+
+
+test basic PASSED (2 of 2)
+ (run a single command with no arguments)
+
+starting parseargs
+
+**********************************************************************
+
+Test parseargs
+a command with an argument
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/parseargs/in
+
+
+test parseargs PASSED (2 of 2)
+ (a command with an argument)
+
+starting parseargs2
+
+**********************************************************************
+
+Test parseargs2
+a commands with many arguments
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/parseargs2/in
+
+
+test parseargs2 PASSED (2 of 2)
+ (a commands with many arguments)
+
+starting parseargs3
+
+**********************************************************************
+
+Test parseargs3
+A command with illegal arguments
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/parseargs3/in
+
+
+test parseargs3 PASSED (2 of 2)
+ (A command with illegal arguments)
+
+starting parseargs4
+
+**********************************************************************
+
+Test parseargs4
+An invalid command
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/parseargs4/in
+
+
+test parseargs4 PASSED (4 of 4)
+ (An invalid command)
+
+starting exit
+
+**********************************************************************
+
+Test exit
+The builtin exit command
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/exit/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "uname\nLinux\nexit&\n"
+Got:      "uname\nLinux\nexit&\nuname\nLinux\n"
+
+
+test exit FAILED (0 of 2)
+ (The builtin exit command)
+ ./mysh gave incorrect standard output.
+
+starting illegal
+
+**********************************************************************
+
+Test illegal
+Builtin command with illegal arguments
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/illegal/in
+
+
+test illegal PASSED (2 of 2)
+ (Builtin command with illegal arguments)
+
+starting whitespace
+
+**********************************************************************
+
+Test whitespace
+Builtin command with extra whitespace
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/whitespace/in
+Failure: ./mysh returned incorrect status code. Expected 0 got 1
+
+
+test whitespace FAILED (0 of 2)
+ (Builtin command with extra whitespace)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+starting whitespace2
+
+**********************************************************************
+
+Test whitespace2
+Several commands with extra whitespace
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/whitespace2/in
+
+
+test whitespace2 PASSED (3 of 3)
+ (Several commands with extra whitespace)
+
+starting whitespace3
+
+**********************************************************************
+
+Test whitespace3
+Several commands with &
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/whitespace3/in
+
+
+test whitespace3 FAILED (0 of 3)
+ (Several commands with &)
+ Timelimit (5.0s) exceeded
+
+starting job
+
+**********************************************************************
+
+Test job
+Simple j command with one background process
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/job/in
+
+
+test job PASSED (3 of 3)
+ (Simple j command with one background process)
+
+starting job2
+
+**********************************************************************
+
+Test job2
+Simple j command with extra whitespace and &
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/job2/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "sleep 2 &\n\t j&    \n1 : sleep 2\n"
+Got:      "sleep 2 &\n\t j&    \n"
+
+
+test job2 FAILED (0 of 4)
+ (Simple j command with extra whitespace and &)
+ ./mysh gave incorrect standard output.
+
+starting job3
+
+**********************************************************************
+
+Test job3
+j command with multiple background process and empty lines
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/job3/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "\nsleep 3&\necho jid: 2\njid: 2\n\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 2 jid:3&&\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 jid:3&\nj\n1 : sleep 3\n3 : /u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 2 jid:3&\n4 : /u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 jid:3\nsleep 3\njid:3\njid:3&\n"
+Got:      "\nsleep 3&\necho jid: 2\njid: 2\n\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 2 jid:3&&\njid:3&&\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 jid:3&\njid:3&\nj\nsleep 3\n"
+
+
+test job3 FAILED (0 of 5)
+ (j command with multiple background process and empty lines)
+ ./mysh gave incorrect standard output.
+
+starting job4
+
+**********************************************************************
+
+Test job4
+Call j commands multiple times
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/job4/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "sleep 2&\nsleep 5&\nj\n1 : sleep 2\n2 : sleep 5\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 3 next\nnext\nsleep 1&\nj\n2 : sleep 5\n4 : sleep 1\n"
+Got:      "sleep 2&\nsleep 5&\nj\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 3 next\nnext\nsleep 1&\nj\n"
+
+
+test job4 FAILED (0 of 4)
+ (Call j commands multiple times)
+ ./mysh gave incorrect standard output.
+
+starting job5
+
+**********************************************************************
+
+Test job5
+j command with commands with extra whitespace
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/job5/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "\t\tsleep 2 \t& \n\nsleep    2&\t\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 \t&&&&& \nj\n1 : sleep 2\n2 : sleep 2\n3 : /u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 &&&&\nsleep 2\n&&&&\n"
+Got:      "\t\tsleep 2 \t& \n\nsleep    2&\t\n/u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1 \t&&&&& \nj\n1 : sleep 2\n3 : /u/c/s/cs537-1/ta/tests/2a/sh/sleep.sh 1\nsleep 2\n\n"
+
+
+test job5 FAILED (0 of 4)
+ (j command with commands with extra whitespace)
+ ./mysh gave incorrect standard output.
+
+starting longline
+
+**********************************************************************
+
+Test longline
+maximum length line
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/longline/in
+Failure: ./mysh gave incorrect standard output.
+Expected: "echo 000011111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999000000000011111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000512\n000011111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999000000000011111111112222222222333333333344444444445555555555666666666677777777778888888888999999999900000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000512\nuname\nLinux\n"
+Got:      "uname\nLinux\n"
+
+
+test longline FAILED (0 of 3)
+ (maximum length line)
+ ./mysh gave incorrect standard output.
+
+starting toolong
+
+**********************************************************************
+
+Test toolong
+a line that is too long
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/toolong/in
+Failure: toolong gave incorrect output
+
+
+test toolong FAILED (0 of 3)
+ (a line that is too long)
+ toolong gave incorrect output
+
+starting myw
+
+**********************************************************************
+
+Test myw
+myw with illegal argument
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/myw/in
+Failure: ./mysh gave incorrect standard error.
+Expected: "myw: Command not found\n"
+Got:      "sleep: invalid time interval \342\200\2302&\342\200\231\nTry 'sleep --help' for more information.\nmyw: Command not found\n"
+
+
+test myw FAILED (0 of 3)
+ (myw with illegal argument)
+ ./mysh gave incorrect standard error.
+
+starting myw1
+
+**********************************************************************
+
+Test myw1
+myw with illegal argument
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/myw1/in
+Failure: ./mysh gave incorrect standard error.
+Expected: "Invalid jid 2\n"
+Got:      "sleep: invalid time interval \342\200\2302&\342\200\231\nTry 'sleep --help' for more information.\nInvalid jid 2\n"
+
+
+test myw1 FAILED (0 of 3)
+ (myw with illegal argument)
+ ./mysh gave incorrect standard error.
+
+starting myw2
+
+**********************************************************************
+
+Test myw2
+Single myw
+
+**********************************************************************
+Running mysh with simple myw
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/myw2/in
+Failure: myw2 gave incorrect output
+
+
+test myw2 FAILED (0 of 3)
+ (Single myw)
+ myw2 gave incorrect output
+
+starting myw3
+
+**********************************************************************
+
+Test myw3
+Multiple myw
+
+**********************************************************************
+Running mysh with multiple myw
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/myw3/in
+
+
+test myw3 PASSED (5 of 5)
+ (Multiple myw)
+
+starting myw4
+
+**********************************************************************
+
+Test myw4
+myw for already complete process
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/myw4/in
+Failure: ./mysh returned incorrect status code. Expected 0 got 1
+
+
+test myw4 FAILED (0 of 3)
+ (myw for already complete process)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+starting background
+
+**********************************************************************
+
+Test background
+32 concurrently running background jobs and over 100 background jobs in total
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/background/in
+Failure: ./mysh returned incorrect status code. Expected 0 got 1
+
+
+test background FAILED (0 of 5)
+ (32 concurrently running background jobs and over 100 background jobs in total)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+starting end
+
+**********************************************************************
+
+Test end
+Batch file without exit
+
+**********************************************************************
+/tmp/tmpYosQJb/p/./mysh /u/c/s/cs537-1/ta/tests/2a/end/in
+
+
+test end PASSED (2 of 2)
+ (Batch file without exit)
+
+**********************************************************************
+Summary:
+test build PASSED
+ (build project using make)
+
+test linttest FAILED (0 of 5)
+ (Lint test for C programming style)
+ /u/c/s/cs537-1/ta/tests/2a/../../lint/cpplint.py returned incorrect status code. Expected 0 got 1
+
+test valgrindtest PASSED (10 of 10)
+ (Valgrind test for memory management)
+
+test args PASSED (2 of 2)
+ (too many arguments to mysh)
+
+test args2 PASSED (2 of 2)
+ (invalid batch file path)
+
+test interactive FAILED (0 of 2)
+ (simple command in interactive mode)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+test interactive2 FAILED (0 of 3)
+ (multiple commands in interactive mode)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+test blank PASSED (2 of 2)
+ (an empty batch file)
+
+test basic PASSED (2 of 2)
+ (run a single command with no arguments)
+
+test parseargs PASSED (2 of 2)
+ (a command with an argument)
+
+test parseargs2 PASSED (2 of 2)
+ (a commands with many arguments)
+
+test parseargs3 PASSED (2 of 2)
+ (A command with illegal arguments)
+
+test parseargs4 PASSED (4 of 4)
+ (An invalid command)
+
+test exit FAILED (0 of 2)
+ (The builtin exit command)
+ ./mysh gave incorrect standard output.
+
+test illegal PASSED (2 of 2)
+ (Builtin command with illegal arguments)
+
+test whitespace FAILED (0 of 2)
+ (Builtin command with extra whitespace)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+test whitespace2 PASSED (3 of 3)
+ (Several commands with extra whitespace)
+
+test whitespace3 FAILED (0 of 3)
+ (Several commands with &)
+ Timelimit (5.0s) exceeded
+
+test job PASSED (3 of 3)
+ (Simple j command with one background process)
+
+test job2 FAILED (0 of 4)
+ (Simple j command with extra whitespace and &)
+ ./mysh gave incorrect standard output.
+
+test job3 FAILED (0 of 5)
+ (j command with multiple background process and empty lines)
+ ./mysh gave incorrect standard output.
+
+test job4 FAILED (0 of 4)
+ (Call j commands multiple times)
+ ./mysh gave incorrect standard output.
+
+test job5 FAILED (0 of 4)
+ (j command with commands with extra whitespace)
+ ./mysh gave incorrect standard output.
+
+test longline FAILED (0 of 3)
+ (maximum length line)
+ ./mysh gave incorrect standard output.
+
+test toolong FAILED (0 of 3)
+ (a line that is too long)
+ toolong gave incorrect output
+
+test myw FAILED (0 of 3)
+ (myw with illegal argument)
+ ./mysh gave incorrect standard error.
+
+test myw1 FAILED (0 of 3)
+ (myw with illegal argument)
+ ./mysh gave incorrect standard error.
+
+test myw2 FAILED (0 of 3)
+ (Single myw)
+ myw2 gave incorrect output
+
+test myw3 PASSED (5 of 5)
+ (Multiple myw)
+
+test myw4 FAILED (0 of 3)
+ (myw for already complete process)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+test background FAILED (0 of 5)
+ (32 concurrently running background jobs and over 100 background jobs in total)
+ ./mysh returned incorrect status code. Expected 0 got 1
+
+test end PASSED (2 of 2)
+ (Batch file without exit)
+
+Passed 15 of 32 tests.
+Overall 15 of 32
+Points 43 of 100
