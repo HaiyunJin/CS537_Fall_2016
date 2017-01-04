@@ -1,0 +1,32 @@
+
+
+1. 
+ - 
+Pointers store address and have fixed size.
+Arrays stores data with the same type.
+- Swap function
+void swap(int *a; int *b){
+    int *al;
+    int *bl;
+    al = a ;
+    bl = b ;
+    a = bl ;
+    b = al ;
+}
+
+2. Structs
+- 
+tpyedef struct __linked_list_node {
+    anytype data;
+    linkedlistnode *next ; 
+ } linked_list_node
+   
+
+3. Malloc
+    - A space in memory called heap is reserved for dynamic allocating variables and has longer life time.
+    - I don't know.
+
+4. 
+    -
+
+
